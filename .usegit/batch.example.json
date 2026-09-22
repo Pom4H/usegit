@@ -1,53 +1,41 @@
 {
   "id": "BATCH-example",
-  "experiment": "EXP-0009",
   "defaults": {
-    "uncertainty": "low",
-    "oracle": "objective",
-    "evidencePlan": "deterministic CI test"
+    "evidencePlan": "CI"
   },
   "work": [
     {
       "id": "WORK-example-a",
-      "goal": "improve component A",
-      "hypothesis": "change A improves its objective metric",
+      "goal": "implement component A",
       "scopes": [
-        "src/a/**",
-        "test/a/**"
+        "src/a/**"
       ],
       "resources": [
         {
           "name": "system.a",
           "access": "write"
-        },
-        {
-          "name": "metric.quality",
-          "access": "read"
         }
       ],
-      "success": "A metric improves without regression",
+      "success": "tests pass",
       "priority": 20
     },
     {
       "id": "WORK-example-b",
-      "goal": "improve component B",
-      "hypothesis": "change B improves its objective metric",
+      "goal": "implement component B",
       "scopes": [
-        "src/b/**",
-        "test/b/**"
+        "src/b/**"
       ],
       "resources": [
         {
           "name": "system.b",
           "access": "write"
-        },
-        {
-          "name": "metric.quality",
-          "access": "read"
         }
       ],
-      "success": "B metric improves without regression",
-      "priority": 10
+      "success": "tests pass",
+      "priority": 10,
+      "dependsOn": [
+        "WORK-example-a"
+      ]
     }
   ]
 }
