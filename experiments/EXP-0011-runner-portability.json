@@ -2,7 +2,7 @@
   "id": "EXP-0011",
   "question": "Can the reusable usegit workflow run on repositories that require their own self-hosted runner instead of GitHub-hosted ubuntu-latest?",
   "hypothesis": "Making the reusable runner label an explicit workflow input and using bash for run steps will preserve the same causal validation/evidence behavior on both ubuntu-latest and Windows self-hosted runners.",
-  "status": "running",
+  "status": "accepted",
   "conditions": {
     "discoveryRepository": "Pom4H/game-engine",
     "failedRunId": 35699590334,
@@ -45,7 +45,24 @@
       "repository": "Pom4H/game-engine",
       "runId": 35700520129,
       "observation": "Dynamic shell expression prevented the reusable caller from constructing any job; shell selection must be static workflow topology."
+    },
+    {
+      "kind": "cross-project-acceptance",
+      "repository": "Pom4H/game-engine",
+      "commit": "5b2d2016ee327e45a7acf38cff7a780ec515be51",
+      "runId": 35700671796,
+      "runner": "NUCBOX_M6ULTRA",
+      "runnerOs": "Windows",
+      "runnerArch": "X64",
+      "lane": "windows-cmd",
+      "validation": "success",
+      "report": "success",
+      "gitNoteMaterialized": true,
+      "notesRef": "refs/notes/usegit"
     }
   ],
-  "decision": null
+  "decision": {
+    "outcome": "accepted",
+    "reason": "The typed Windows/cmd lane completed causal validation and reporting on game-engine's existing self-hosted Windows runner and materialized durable evidence in refs/notes/usegit. The default POSIX lane remains covered by usegit's own successful CI."
+  }
 }
