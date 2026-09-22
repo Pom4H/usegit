@@ -31,9 +31,9 @@
     "baseCommit": "5711fd9c494ce46bb261e808374a747c36fa7347",
     "targetTree": "8aaf353048cfa4f516c288459a3cd80ffed1deea",
     "branches": {
-      "coarse": "bench/granularity/coarse-v1",
-      "fine": "bench/granularity/fine-v1",
-      "dynamic": "bench/granularity/dynamic-v1"
+      "A": "bench/granularity/a-v1",
+      "B": "bench/granularity/b-v1",
+      "C": "bench/granularity/c-v1"
     },
     "requiredReplayRunsPerVariant": 3,
     "results": []
@@ -42,6 +42,7 @@
     "File and line counts are observations, not boundary rules.",
     "The initial repository samples are observational and confounded by task complexity; they cannot select a winner.",
     "A winner requires paired replay on histories that end at the same tree.",
+    "Replay agents receive anonymous isolated Git bundles; treatment mapping stays evaluator-side.",
     "The selection policy itself is part of the experiment and may be falsified."
   ],
   "decision": null
