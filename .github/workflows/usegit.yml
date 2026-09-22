@@ -6,7 +6,6 @@ on:
       - main
       - "experiment/**"
   pull_request:
-
 permissions:
   contents: write
 
