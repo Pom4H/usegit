@@ -60,7 +60,7 @@ function agentBlock(toolRef) {
     '',
     'This repository uses usegit as design-time memory and durable execution state. A model invocation owns only the next decision; Git owns the work state.',
     '',
-    '1. Before editing, run `' + tool + ' context`. Inspect `work.workerReady`, `work.queueBlocked`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts`; do not duplicate existing work.',
+    '1. Before editing, run `' + tool + ' agents`. It compiles the current decision-critical context from Git/WORK/experiments without becoming source of truth. Use `' + tool + ' context` only when you need the raw structured state; do not reconstruct history from the current tree alone.',
     '2. Control agents preferably create batches of WORK with file scopes, semantic read/write resources, success criteria, evidence plans, priorities and dependencies. Low-uncertainty work with an objective oracle is routed to `work.workerReady`; ambiguous work stays in control.',
     '3. Cheap workers only claim `work.workerReady`; prefer `' + tool + ' claim-next` so workers self-schedule. Do not take control-queue work or improvise architecture.',
     '4. If a worker finds conflicting evidence, architecture ambiguity, or repeated unexplained failure, run `' + tool + ' escalate WORK-* --reason ...` and return the decision to control.',
@@ -74,6 +74,7 @@ function agentBlock(toolRef) {
     '12. Preserve rejected and falsified hypotheses with their conditions. Do not silently retry equivalent failed work.',
     '13. Pull requests are integration boundaries, not work containers. Do not create a PR per task or agent. Use `' + tool + ' integration -- <plan.json>` after evidence is accepted.',
     '14. After an experiment changes state, run `' + tool + ' next` and let accumulated evidence propose the next falsifiable step.',
+    '15. Dynamic agent context is a session-local projection, not tracked state. `' + tool + ' agents --write` may materialize `.git/usegit/AGENTS.md` for agent surfaces that can preload a file; regenerate it instead of editing it.',
     '',
     AGENT_END,
   ].join('\n');

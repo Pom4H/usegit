@@ -370,6 +370,14 @@ It still contains usegit-specific heuristics around commit-granularity experimen
 
 The current repeated-falsified-hypothesis check is only the first version of negative knowledge. A richer model may later represent explicit conditions, counterexamples and validity ranges.
 
+### Compiled agent context
+
+`usegit agents` compiles a deterministic, decision-oriented prompt projection from the canonical Git-backed state. The tracked root `AGENTS.md` remains stable protocol; the runtime projection may be emitted to stdout or materialized under `.git/usegit/AGENTS.md`.
+
+The runtime projection is deliberately not committed. A tracked projection that includes HEAD-dependent state is self-referential: committing the projection changes HEAD and immediately makes the snapshot stale. The compiled context is therefore a cache for the next model invocation, not another state store.
+
+Whether this projection reduces startup cost without losing decision-critical information is tracked by `EXP-0013`; it is experimental policy, not yet a stable protocol requirement.
+
 ## Tested invariants
 
 The repository dogfoods this protocol in CI.

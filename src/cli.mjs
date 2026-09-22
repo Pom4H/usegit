@@ -6,6 +6,7 @@ import { history, validationErrors } from './metadata.mjs';
 import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
+import { checkAgentContext, compileAgentContext, writeAgentContext } from './agent-context.mjs';
 import { decideIntegration } from './integration.mjs';
 import { initializeRepository } from './init.mjs';
 import { recommendRoute } from './routing.mjs';
@@ -207,6 +208,22 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'agents') {
+    const args = parseArgs(process.argv.slice(3));
+    const options = {
+      sync: Boolean(args.sync),
+      remote: args.remote ?? 'origin',
+      ...(args.output ? { output: args.output } : {}),
+    };
+    if (args.check) {
+      const result = checkAgentContext(options);
+      print(result);
+      if (!result.fresh) process.exitCode = 1;
+    } else if (args.write) {
+      print(writeAgentContext(options));
+    } else {
+      process.stdout.write(compileAgentContext(options).markdown);
+    }
   } else if (command === 'view') {
     const args = parseArgs(process.argv.slice(3));
     const options = { sync: Boolean(args.sync) };

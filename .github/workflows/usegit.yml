@@ -25,12 +25,14 @@ jobs:
       - run: npm run validate
       - run: node src/cli.mjs doctor --repair > usegit-doctor.json
       - run: npm run report > usegit-report.json
+      - run: npm run agents:benchmark | tee usegit-agent-context.json
       - uses: actions/upload-artifact@v4
         with:
           name: usegit-report
           path: |
             usegit-report.json
             usegit-doctor.json
+            usegit-agent-context.json
 
   protocol-chaos:
     needs: validate
@@ -85,7 +87,6 @@ jobs:
         run: |
           git push origin ":refs/usegit/work/$WORK_ID" || true
           git update-ref -d "refs/usegit/work/$WORK_ID" || true
-
 
   blind-ai-handoff-arm:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' && contains(github.event.head_commit.message, 'Usegit-Arm-Blind-Handoff') }}

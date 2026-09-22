@@ -28,7 +28,9 @@
     "resume": "node src/cli.mjs resume",
     "finish": "node src/cli.mjs finish",
     "view": "node src/cli.mjs view",
-    "test:protocol": "node --test test/evidence-integrity.test.mjs test/protocol-race.e2e.mjs test/doctor-chaos.test.mjs"
+    "test:protocol": "node --test test/evidence-integrity.test.mjs test/protocol-race.e2e.mjs test/doctor-chaos.test.mjs",
+    "agents": "node src/cli.mjs agents",
+    "agents:benchmark": "node src/agent-context-benchmark.mjs"
   },
   "engines": {
     "node": ">=22"

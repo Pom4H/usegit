@@ -2,7 +2,7 @@
 
 This repository is a self-hosting experiment. The development process is part of the product data.
 
-1. Run `npm run context` before editing. Do not reconstruct history from the current tree alone.
+1. Run `npm run agents` before editing. It compiles the current decision-critical context from Git/WORK/experiments. Use `npm run context` only when you need the raw structured state; do not reconstruct history from the current tree alone.
 2. Inspect `work.workerReady`, `work.queueBlocked`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts` before starting anything. Do not duplicate existing work.
 3. Control agents create `WORK-*` units before implementation, preferably as a batch. Declare file scopes plus semantic read/write resources, explicit success criteria, evidence plans, priorities and dependencies.
 4. Cheap workers only claim tasks present in `work.workerReady`. Prefer `usegit claim-next`; do not take control-queue work.
@@ -36,3 +36,4 @@ This repository is a self-hosting experiment. The development process is part of
 22. Do not create a pull request merely because an agent or work item exists. PRs are optional integration artifacts, not work containers.
 23. When a set of work items has accepted evidence, evaluate it with `npm run integration -- <plan.json>`. Create at most one PR for that integration set, and only when a real human-review, protected-target, release or external-contributor boundary exists.
 24. When a user asks to see or understand the project as a dashboard, project view or interactive HTML, prefer the disposable human projection: `usegit view --output usegit.html`. In ChatGPT or another agent surface, use the same `buildViewModel` / `renderView` contract and return the HTML artifact. Do not make raw commit messages, SHAs, refs or PRs the primary human interface; keep them as provenance. The HTML never becomes source of truth and must not write decisions back into Git.
+25. Treat compiled agent context the same way: `usegit agents` is a disposable prompt projection. `usegit agents --write` may cache it under `.git/usegit/AGENTS.md`; never commit that runtime snapshot or treat it as canonical state.
