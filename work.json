@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "WORK-BLIND-0001",
+  "goal": "prove a fresh AI can continue usegit development from repository state only",
+  "hypothesis": "a fresh agent can discover awaiting work, verify its external evidence, choose the encoded continuation, and act without prior chat context",
+  "experiment": "EXP-0006",
+  "base": "ea01f894aecc0576a850242c8de0d7a6a739bce2",
+  "status": "active",
+  "createdAt": "2026-09-22T06:37:00.821Z",
+  "updatedAt": "2026-09-22T06:37:00.821Z",
+  "lease": {
+    "owner": "blind-source-agent",
+    "acquiredAt": "2026-09-22T06:37:00.821Z",
+    "expiresAt": "2026-09-22T07:07:00.821Z"
+  },
+  "awaiting": null,
+  "continuation": null,
+  "selectedContinuation": null,
+  "evidence": [],
+  "decision": null
+}
