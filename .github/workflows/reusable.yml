@@ -17,9 +17,6 @@ on:
 jobs:
   causal-history:
     runs-on: ${{ inputs.runs_on }}
-    defaults:
-      run:
-        shell: bash
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -51,11 +48,23 @@ jobs:
           name: usegit-report
           path: usegit-report.json
 
+      - name: Configure evidence author
+        if: ${{ github.event_name == 'push' }}
+        run: git config user.name "usegit[bot]"
+
+      - name: Configure evidence email
+        if: ${{ github.event_name == 'push' }}
+        run: git config user.email "usegit[bot]@users.noreply.github.com"
+
+      - name: Fetch prior usegit evidence
+        if: ${{ github.event_name == 'push' }}
+        continue-on-error: true
+        run: git fetch origin refs/notes/usegit:refs/notes/usegit
+
       - name: Materialize CI evidence
         if: ${{ github.event_name == 'push' }}
-        run: |
-          git config user.name "usegit[bot]"
-          git config user.email "usegit[bot]@users.noreply.github.com"
-          git fetch origin refs/notes/usegit:refs/notes/usegit || true
-          node .usegit-runtime/src/note.mjs "$GITHUB_SHA" "success"
-          git push origin refs/notes/usegit
+        run: node .usegit-runtime/src/note.mjs "${{ github.sha }}" "success"
+
+      - name: Push usegit evidence
+        if: ${{ github.event_name == 'push' }}
+        run: git push origin refs/notes/usegit

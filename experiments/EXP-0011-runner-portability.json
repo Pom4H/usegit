@@ -8,7 +8,8 @@
     "failedRunId": 35699590334,
     "observedRunnerId": 0,
     "requiredRunner": "self-hosted",
-    "targetOS": "Windows"
+    "targetOS": "Windows",
+    "shell": "runner-default"
   },
   "metrics": [
     "reusable_workflow_start_success",
@@ -22,6 +23,12 @@
       "repository": "Pom4H/game-engine",
       "runId": 35699590334,
       "observation": "Reusable workflow failed before its first step because ubuntu-latest was unavailable; job reported runner_id 0."
+    },
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35699807888,
+      "observation": "The self-hosted Windows runner started successfully, then failed at Configure evidence transport because bash is not installed as an Actions shell."
     }
   ],
   "decision": null
