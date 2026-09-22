@@ -13,71 +13,100 @@ on:
         required: false
         type: string
         default: ubuntu-latest
-      runner_shell:
-        description: Shell available on the selected runner
+      windows:
+        description: Use the Windows cmd execution lane
         required: false
-        type: string
-        default: bash
+        type: boolean
+        default: false
 
 jobs:
   causal-history:
+    if: ${{ !inputs.windows }}
     runs-on: ${{ inputs.runs_on }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Checkout usegit
         uses: actions/checkout@v4
         with:
           repository: Pom4H/usegit
           ref: ${{ inputs.tool_ref }}
           path: .usegit-runtime
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Configure evidence transport
-        shell: ${{ inputs.runner_shell }}
         run: node .usegit-runtime/src/cli.mjs setup
-
       - name: Validate causal history
-        shell: ${{ inputs.runner_shell }}
         run: node .usegit-runtime/src/cli.mjs validate
-
       - name: Build causal report
-        shell: ${{ inputs.runner_shell }}
         run: node .usegit-runtime/src/cli.mjs report > usegit-report.json
-
       - uses: actions/upload-artifact@v4
         with:
           name: usegit-report
           path: usegit-report.json
-
       - name: Configure evidence author
         if: ${{ github.event_name == 'push' }}
-        shell: ${{ inputs.runner_shell }}
         run: git config user.name "usegit[bot]"
-
       - name: Configure evidence email
         if: ${{ github.event_name == 'push' }}
-        shell: ${{ inputs.runner_shell }}
         run: git config user.email "usegit[bot]@users.noreply.github.com"
-
       - name: Fetch prior usegit evidence
         if: ${{ github.event_name == 'push' }}
         continue-on-error: true
-        shell: ${{ inputs.runner_shell }}
         run: git fetch origin refs/notes/usegit:refs/notes/usegit
-
       - name: Materialize CI evidence
         if: ${{ github.event_name == 'push' }}
-        shell: ${{ inputs.runner_shell }}
         run: node .usegit-runtime/src/note.mjs "${{ github.sha }}" "success"
-
       - name: Push usegit evidence
         if: ${{ github.event_name == 'push' }}
-        shell: ${{ inputs.runner_shell }}
+        run: git push origin refs/notes/usegit
+
+  causal-history-windows:
+    if: ${{ inputs.windows }}
+    runs-on: ${{ inputs.runs_on }}
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout usegit
+        uses: actions/checkout@v4
+        with:
+          repository: Pom4H/usegit
+          ref: ${{ inputs.tool_ref }}
+          path: .usegit-runtime
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Configure evidence transport
+        run: node .usegit-runtime/src/cli.mjs setup
+      - name: Validate causal history
+        run: node .usegit-runtime/src/cli.mjs validate
+      - name: Build causal report
+        run: node .usegit-runtime/src/cli.mjs report > usegit-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usegit-report
+          path: usegit-report.json
+      - name: Configure evidence author
+        if: ${{ github.event_name == 'push' }}
+        run: git config user.name "usegit[bot]"
+      - name: Configure evidence email
+        if: ${{ github.event_name == 'push' }}
+        run: git config user.email "usegit[bot]@users.noreply.github.com"
+      - name: Fetch prior usegit evidence
+        if: ${{ github.event_name == 'push' }}
+        continue-on-error: true
+        run: git fetch origin refs/notes/usegit:refs/notes/usegit
+      - name: Materialize CI evidence
+        if: ${{ github.event_name == 'push' }}
+        run: node .usegit-runtime/src/note.mjs "${{ github.sha }}" "success"
+      - name: Push usegit evidence
+        if: ${{ github.event_name == 'push' }}
         run: git push origin refs/notes/usegit

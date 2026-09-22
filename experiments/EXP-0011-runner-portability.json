@@ -9,7 +9,11 @@
     "observedRunnerId": 0,
     "requiredRunner": "self-hosted",
     "targetOS": "Windows",
-    "shell": "explicit runner_shell input"
+    "shell": "explicit runner_shell input",
+    "executionLanes": [
+      "posix-default-shell",
+      "windows-cmd"
+    ]
   },
   "metrics": [
     "reusable_workflow_start_success",
@@ -35,6 +39,12 @@
       "repository": "Pom4H/game-engine",
       "runId": 35700259542,
       "observation": "Runner-default PowerShell was selected on Windows but local execution policy blocks generated .ps1 scripts; the target repository already uses cmd successfully."
+    },
+    {
+      "kind": "workflow-compile-failure",
+      "repository": "Pom4H/game-engine",
+      "runId": 35700520129,
+      "observation": "Dynamic shell expression prevented the reusable caller from constructing any job; shell selection must be static workflow topology."
     }
   ],
   "decision": null
