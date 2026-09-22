@@ -1,0 +1,54 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { commitStats } from './git.mjs';
+import { history, validationErrors } from './metadata.mjs';
+
+function median(values) {
+  if (!values.length) return 0;
+  const xs = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(xs.length / 2);
+  return xs.length % 2 ? xs[mid] : (xs[mid - 1] + xs[mid]) / 2;
+}
+
+function loadExperiments(dir = 'experiments') {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .sort()
+    .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+}
+
+export function buildReport() {
+  const commits = history();
+  const structured = commits.filter((c) => c.metadata.changeId);
+  const samples = structured.map((commit) => ({ ...commit, stats: commitStats(commit.sha) }));
+
+  const strategyNames = ['coarse', 'fine', 'dynamic'];
+  const strategies = Object.fromEntries(strategyNames.map((name) => {
+    const xs = samples.filter((x) => x.metadata.granularity === name);
+    const experiments = new Set(xs.map((x) => x.metadata.experiment).filter(Boolean));
+    return [name, {
+      samples: xs.length,
+      experiments: experiments.size,
+      medianLines: median(xs.map((x) => x.stats.lines)),
+      medianFiles: median(xs.map((x) => x.stats.files)),
+      pending: xs.filter((x) => x.metadata.decision === 'pending').length,
+    }];
+  }));
+
+  const chronological = [...commits].reverse();
+  const first = chronological.findIndex((c) => c.metadata.changeId);
+  const relevant = first < 0 ? [] : chronological.slice(first).filter((c) => c.parents.length <= 1);
+  const coverage = relevant.length ? relevant.filter((c) => c.metadata.changeId).length / relevant.length : 0;
+  const experiments = loadExperiments();
+
+  return {
+    schemaVersion: 1,
+    generatedFrom: commits[0]?.sha ?? null,
+    structuredCommitCoverage: Number(coverage.toFixed(4)),
+    structuredCommits: structured.length,
+    unresolvedExperiments: experiments.filter((x) => x.status === 'running').map((x) => x.id),
+    strategies,
+    validationErrors: validationErrors(commits),
+  };
+}

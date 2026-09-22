@@ -1,0 +1,17 @@
+{
+  "id": "EXP-0001",
+  "question": "Can structured causal metadata make Git history useful as design-time memory for coding agents?",
+  "hypothesis": "A compact causal layer linking intent, hypothesis, change and evidence will reduce repeated investigation after context loss.",
+  "status": "running",
+  "conditions": {
+    "repository": "Pom4H/usegit",
+    "protocolVersion": 0
+  },
+  "metrics": [
+    "structured_commit_coverage",
+    "unresolved_hypothesis_count",
+    "history_reconstruction_cost",
+    "repeated_falsified_hypothesis_count"
+  ],
+  "decision": null
+}
