@@ -3,41 +3,56 @@
   "$id": "https://github.com/Pom4H/usegit/.usegit/batch.schema.json",
   "title": "usegit work batch",
   "type": "object",
-  "required": ["id", "work"],
+  "required": [
+    "id",
+    "work"
+  ],
   "properties": {
-    "id": { "type": "string", "minLength": 1 },
-    "experiment": { "type": ["string", "null"] },
-    "defaults": { "type": "object" },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaults": {
+      "type": "object"
+    },
     "work": {
       "type": "array",
       "minItems": 1,
       "maxItems": 100,
       "items": {
         "type": "object",
-        "required": ["id", "goal", "hypothesis"],
+        "required": [
+          "id",
+          "goal"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^WORK-[A-Za-z0-9._-]+$" },
-          "goal": { "type": "string", "minLength": 1 },
-          "hypothesis": { "type": "string", "minLength": 1 },
-          "scopes": { "type": "array", "items": { "type": "string" } },
-          "resources": {
+          "id": {
+            "type": "string",
+            "pattern": "^WORK-[A-Za-z0-9._-]+$"
+          },
+          "goal": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scopes": {
             "type": "array",
             "items": {
-              "anyOf": [
-                { "type": "string" },
-                {
-                  "type": "object",
-                  "required": ["name", "access"],
-                  "properties": {
-                    "name": { "type": "string" },
-                    "access": { "enum": ["read", "write"] }
-                  }
-                }
-              ]
+              "type": "string"
             }
           },
-          "priority": { "type": "number" },
-          "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+          "resources": {
+            "type": "array"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
         },
         "additionalProperties": true
       }
