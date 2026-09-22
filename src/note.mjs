@@ -8,6 +8,7 @@ const message = git(['show', '-s', '--format=%B', sha]);
 const metadata = parseTrailers(message);
 const tree = git(['rev-parse', `${sha}^{tree}`]);
 const environment = environmentSnapshot();
+const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT ?? 1);
 
 const evidence = normalizeEvidence({
   kind: 'observed',
@@ -16,6 +17,12 @@ const evidence = normalizeEvidence({
   source: process.env.GITHUB_RUN_ID
     ? `github-actions:${process.env.GITHUB_RUN_ID}`
     : 'usegit-ci',
+  quality: runAttempt > 1 ? 'retry-pass' : 'first-pass',
+  run: {
+    provider: process.env.GITHUB_ACTIONS ? 'github-actions' : 'local',
+    id: process.env.GITHUB_RUN_ID ?? null,
+    attempt: runAttempt,
+  },
   commit: sha,
   tree,
   environment,

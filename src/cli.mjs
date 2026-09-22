@@ -82,6 +82,17 @@ function contractFromArgs(args) {
   };
 }
 
+function evidenceRunFromArgs(args, prefix = '') {
+  const key = (name) => prefix
+    ? `${prefix}${name[0].toUpperCase()}${name.slice(1)}`
+    : name;
+  const provider = args[key('runProvider')] ?? null;
+  const id = args[key('runId')] ?? null;
+  const attempt = args[key('runAttempt')] ?? null;
+  if (provider === null && id === null && attempt === null) return null;
+  return { provider, id, attempt };
+}
+
 function workCommand(action, values) {
   const args = parseArgs(values);
   const id = args._[0] ?? args.id;
@@ -150,6 +161,8 @@ function workCommand(action, values) {
       source: args.source ?? null,
       environment: args.environment ?? null,
       event: args.event ?? null,
+      quality: args.quality ?? null,
+      run: evidenceRunFromArgs(args),
       owner: args.owner,
       remote: args.remote ?? 'origin',
     });
@@ -162,6 +175,8 @@ function workCommand(action, values) {
       evidenceKind: args.evidenceKind ?? 'asserted',
       evidenceSource: args.evidenceSource ?? null,
       evidenceEnvironment: args.evidenceEnvironment ?? null,
+      evidenceQuality: args.evidenceQuality ?? null,
+      evidenceRun: evidenceRunFromArgs(args, 'evidence'),
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',

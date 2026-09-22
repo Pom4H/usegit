@@ -150,6 +150,8 @@ function buildEvidence({
   observation = null,
   source = null,
   environment = null,
+  quality = null,
+  run = null,
 } = {}) {
   const subject = gitSubject();
   return normalizeEvidence({
@@ -158,6 +160,8 @@ function buildEvidence({
     result,
     observation,
     source,
+    quality,
+    run,
     commit: subject.commit,
     tree: subject.tree,
     environment: {
@@ -351,6 +355,8 @@ export function recordWorkEvidence(id, {
   source = null,
   environment = null,
   event = null,
+  quality = null,
+  run = null,
   owner = defaultOwner(),
   remote = 'origin',
 } = {}) {
@@ -363,8 +369,21 @@ export function recordWorkEvidence(id, {
     source,
     environment,
     event,
+    quality,
+    run,
   });
-  return persist(recordEvidenceState(state, { owner, evidence }), commit, remote);
+  const next = recordEvidenceState(state, { owner, evidence });
+  if (next === state) {
+    const remoteDurable = hasRemote(remote);
+    return {
+      ...state,
+      stateCommit: commit,
+      duplicateEvidence: true,
+      durability: remoteDurable ? 'remote' : 'local',
+      remote: remoteDurable ? remote : null,
+    };
+  }
+  return persist(next, commit, remote);
 }
 
 export function resumeWork(id, {
@@ -373,6 +392,8 @@ export function resumeWork(id, {
   evidenceKind = 'asserted',
   evidenceSource = null,
   evidenceEnvironment = null,
+  evidenceQuality = null,
+  evidenceRun = null,
   owner = defaultOwner(),
   leaseMinutes = 30,
   remote = 'origin',
@@ -386,6 +407,8 @@ export function resumeWork(id, {
     observation: evidence,
     source: evidenceSource,
     environment: evidenceEnvironment,
+    quality: evidenceQuality,
+    run: evidenceRun,
   }) : null;
 
   return persist(resumeWorkState(state, {

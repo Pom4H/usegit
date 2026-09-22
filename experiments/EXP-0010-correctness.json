@@ -10,14 +10,20 @@
       "attested"
     ],
     "acceptance": "trusted evidence must match the exact decision tree",
-    "doctor": "read-only by default; repair only performs safe synchronization"
+    "doctor": "read-only by default; repair only performs safe synchronization",
+    "evidenceIntegrity": "new evidence has stable EV identity + SHA-256 digest; duplicate delivery is idempotent; tampering fails closed",
+    "evidenceQuality": "first-pass/manual-attestation may support acceptance; retry-pass/flaky/quarantined/derived remain contextual"
   },
   "metrics": [
     "hidden_conflict_detection_rate",
     "stale_evidence_rejection_rate",
     "doctor_detection_rate",
     "false_positive_rate",
-    "unsafe_auto_repair_count"
+    "unsafe_auto_repair_count",
+    "duplicate_evidence_idempotency",
+    "claim_race_single_owner_rate",
+    "fresh_clone_recovery_rate",
+    "tampered_evidence_rejection_rate"
   ],
   "evidence": [
     {

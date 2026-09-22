@@ -32,6 +32,23 @@ jobs:
             usegit-report.json
             usegit-doctor.json
 
+  protocol-chaos:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        repetition: [1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Exercise evidence integrity and real-Git race/recovery invariants
+        run: npm run test:protocol
+
   durable-work-remote:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
     needs: validate

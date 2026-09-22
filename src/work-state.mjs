@@ -107,6 +107,20 @@ function assertOwner(work, owner, now) {
   }
 }
 
+function appendEvidence(records, evidence, now) {
+  const record = normalizeEvidence({
+    ...evidence,
+    observedAt: evidence?.observedAt ?? iso(now),
+  });
+  const prior = records.find((item) => item?.id && item.id === record.id);
+  if (!prior) return { records: [...records, record], added: true, record };
+
+  if (prior.digest && record.digest && prior.digest !== record.digest) {
+    throw new Error(`evidence identity collision for ${record.id}`);
+  }
+  return { records, added: false, record: prior };
+}
+
 export function recordEvidenceState(work, {
   owner,
   evidence,
@@ -114,14 +128,12 @@ export function recordEvidenceState(work, {
 }) {
   assertMutable(work);
   if (work.status === 'active') assertOwner(work, owner, now);
-  const record = normalizeEvidence({
-    ...evidence,
-    observedAt: evidence?.observedAt ?? iso(now),
-  });
+  const appended = appendEvidence([...(work.evidence ?? [])], evidence, now);
+  if (!appended.added) return work;
   return {
     ...work,
     updatedAt: iso(now),
-    evidence: [...(work.evidence ?? []), record],
+    evidence: appended.records,
   };
 }
 
@@ -202,12 +214,11 @@ export function resumeWorkState(work, {
 
   let nextEvidence = [...(work.evidence ?? [])];
   if (work.status === 'awaiting' && evidence) {
-    nextEvidence.push(normalizeEvidence({
+    nextEvidence = appendEvidence(nextEvidence, {
       ...evidence,
       event: evidence.event ?? work.awaiting?.event ?? null,
       result: evidence.result ?? result,
-      observedAt: evidence.observedAt ?? iso(now),
-    }));
+    }, now).records;
   }
 
   return {

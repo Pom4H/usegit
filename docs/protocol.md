@@ -148,6 +148,12 @@ tree T0 -- observed success --> valid evidence for T0
 
 CI notes under `refs/notes/usegit` use the same provenance model, so evidence transport and WORK evidence share one trust vocabulary.
 
+Evidence also carries **quality** and **integrity** semantics. A clean tool observation is `first-pass`; a rerun that only passes after retry is `retry-pass`; flaky/quarantined/derived observations remain contextual rather than acceptance-grade. Human/external attestation is recorded as `manual-attestation`. By default only positive `first-pass` observations and positive `manual-attestation` records may support acceptance.
+
+Every new evidence object has a stable content-derived `EV-*` identity and SHA-256 digest. Re-delivery of the same evidence identity is idempotent. A stored payload whose digest no longer matches is treated as tampered and cannot support acceptance. Legacy evidence without a digest remains readable for migration compatibility but `doctor` reports it.
+
+GitHub Actions provenance records the run id and attempt. Attempts greater than one are materialized as `retry-pass`, so a green rerun is not silently promoted to the same epistemic status as a clean first pass.
+
 ## Doctor and reconciliation
 
 `usegit doctor` is a consistency checker for the development runtime. It validates Git-backed WORK state rather than application code.
