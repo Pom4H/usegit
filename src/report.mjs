@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { commitStats } from './git.mjs';
 import { history, validationErrors } from './metadata.mjs';
+import { findRepeatedFalsifiedHypotheses } from './negative.mjs';
 
 function median(values) {
   if (!values.length) return 0;
@@ -41,6 +42,7 @@ export function buildReport() {
   const relevant = first < 0 ? [] : chronological.slice(first).filter((c) => c.parents.length <= 1);
   const coverage = relevant.length ? relevant.filter((c) => c.metadata.changeId).length / relevant.length : 0;
   const experiments = loadExperiments();
+  const repeated = findRepeatedFalsifiedHypotheses(structured);
 
   return {
     schemaVersion: 1,
@@ -48,6 +50,8 @@ export function buildReport() {
     structuredCommitCoverage: Number(coverage.toFixed(4)),
     structuredCommits: structured.length,
     unresolvedExperiments: experiments.filter((x) => x.status === 'running').map((x) => x.id),
+    repeatedFalsifiedHypotheses: repeated,
+    repeatedFalsifiedHypothesisCount: repeated.length,
     strategies,
     validationErrors: validationErrors(commits),
   };
