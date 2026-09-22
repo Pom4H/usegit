@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": { "usegit": "./src/cli.mjs" },
+  "bin": {
+    "usegit": "./src/cli.mjs"
+  },
   "scripts": {
     "test": "node --test",
     "init": "node src/cli.mjs init",
@@ -25,7 +27,10 @@
     "claim-next": "node src/cli.mjs claim-next",
     "evidence": "node src/cli.mjs evidence",
     "resume": "node src/cli.mjs resume",
-    "finish": "node src/cli.mjs finish"
+    "finish": "node src/cli.mjs finish",
+    "view": "node src/cli.mjs view"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

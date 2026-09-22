@@ -1,0 +1,20 @@
+{
+  "id": "EXP-0012",
+  "question": "Can usegit expose causal project state to humans without making raw commits, SHAs, refs or PRs the primary interface?",
+  "hypothesis": "A dependency-free interactive HTML projection over existing usegit state will reduce the amount of Git-specific detail a human must read while preserving one-click provenance back to the underlying commit.",
+  "status": "running",
+  "conditions": {
+    "sourceOfTruth": "existing commit trailers, experiments and WORK refs",
+    "projection": "single self-contained HTML file",
+    "writesState": false,
+    "primaryEntities": ["change", "hypothesis", "experiment", "evidence", "decision"]
+  },
+  "metrics": [
+    "raw_git_fields_required_for_primary_navigation",
+    "projection_dependencies",
+    "causal_fields_preserved",
+    "time_to_understand_current_change"
+  ],
+  "evidence": [],
+  "decision": null
+}

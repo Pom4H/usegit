@@ -22,6 +22,7 @@ import {
   workStatus,
 } from './work.mjs';
 import { configureRepository } from './setup.mjs';
+import { buildViewModel, renderView, writeView } from './view.mjs';
 
 const command = process.argv[2] ?? 'context';
 
@@ -191,6 +192,16 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'view') {
+    const args = parseArgs(process.argv.slice(3));
+    const options = { sync: Boolean(args.sync) };
+    if (args.model) {
+      print(buildViewModel(options));
+    } else if (args.output) {
+      print(writeView(args.output, options));
+    } else {
+      process.stdout.write(renderView(buildViewModel(options)));
+    }
   } else if (command === 'doctor') {
     const args = parseArgs(process.argv.slice(3));
     const diagnosis = doctorRepository({

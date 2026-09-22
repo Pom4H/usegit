@@ -32,6 +32,20 @@ npx --yes github:Pom4H/usegit#main boundary -- .usegit/plan.json
 npx --yes github:Pom4H/usegit#main integration -- .usegit/integration.json
 ```
 
+## Human view
+
+Git is the machine-readable memory, not the UI humans should have to read.
+
+```bash
+usegit view --output usegit.html
+```
+
+This produces one dependency-free interactive HTML file from the existing causal state. The primary navigation is **Change → Hypothesis → Experiment → Evidence → Decision**; commit SHA and granularity remain visible only as provenance.
+
+In ChatGPT, the intended request is simply: **“Show this repository as an interactive usegit HTML view.”** An agent following `AGENTS.md` should return the same disposable projection instead of summarizing raw commit history.
+
+Use `usegit view --model` when another UI surface wants the projection model without the HTML renderer.
+
 ## Model
 
 ```text
