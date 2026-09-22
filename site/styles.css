@@ -1,16 +1,16 @@
 :root {
-  --paper:#f4f1e8;
-  --ink:#12130f;
-  --muted:#66695f;
-  --line:#cec9bc;
-  --panel:#ece8dc;
-  --dark:#121512;
-  --dark-2:#191d19;
-  --dark-line:#30362f;
-  --light:#f4f5ee;
-  --signal:#b8ff63;
-  --blue:#a9d6ff;
-  --amber:#ffd179;
+  --paper:#080b11;
+  --ink:#f5f7fb;
+  --muted:#8d96a8;
+  --line:#202836;
+  --panel:#0f141d;
+  --dark:#080b11;
+  --dark-2:#0f141d;
+  --dark-line:#273143;
+  --light:#f5f7fb;
+  --signal:#15d1be;
+  --blue:#2f8cff;
+  --amber:#7c4dff;
   --mono:"SFMono-Regular","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
   --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
@@ -351,3 +351,136 @@ h1{
 }
 
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* release identity */
+body{overflow-x:hidden}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:780;letter-spacing:-.04em}
+.brand img{display:block;flex:none}
+.brand span{font-size:17px}
+.brand small{margin-left:-3px;color:#687286;font:500 9px/1 var(--mono);letter-spacing:0}
+.brand-static{color:var(--ink)}
+
+.topbar{border-bottom-color:var(--line)}
+.topbar nav{color:var(--muted)}
+.hero{
+  position:relative;
+  isolation:isolate;
+}
+.hero::before,
+.hero::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  border:1px solid;
+  border-radius:50%;
+  pointer-events:none;
+}
+.hero::before{
+  width:820px;
+  height:820px;
+  left:-690px;
+  bottom:-620px;
+  border-color:#5d50ff;
+  box-shadow:0 0 36px rgb(93 80 255 / 22%);
+}
+.hero::after{
+  width:760px;
+  height:760px;
+  right:-650px;
+  top:-600px;
+  border-color:#15cabb;
+  box-shadow:0 0 36px rgb(21 202 187 / 18%);
+}
+.hero-rule{color:#d5dbe6}
+.button{
+  color:#dce2ec;
+  background:#0d121a;
+  border-color:#303b4d;
+}
+.button:hover{background:#131a25;border-color:#46536a}
+.button.primary{color:#080b11;background:#f5f7fb;border-color:#f5f7fb}
+.button.primary:hover{color:#080b11;background:#fff;border-color:#fff}
+
+.runtime-card{
+  background:#090d13;
+  border-color:#303a4c;
+  box-shadow:0 28px 90px rgb(0 0 0 / 34%);
+}
+.runtime-head{border-bottom-color:var(--line);color:#6f7a8e}
+.runtime-head code{color:#8fc4ff}
+.node{background:#0f141d;border-color:#222b39}
+.node small{color:#6e788a}
+.node span{color:#8791a3}
+.node.control{border-left-color:#7c4dff}
+.node.ready{border-left-color:#2f8cff}
+.node.worker{border-left-color:#f5f7fb}
+.node.accepted{border-left-color:#15d1be}
+.fork{color:#6f7a8e}
+.fork span{border-color:#2b3545}
+.fork b{color:#566174}
+
+.statement{background:#0b0f16}
+.statement .kicker,
+.terminal-section .kicker{color:#697487}
+.statement>div>p:last-child,
+.terminal-grid>div>p:last-child,
+.learning-copy,
+.gate-copy>p,
+.install>div>p:last-child{color:var(--muted)}
+
+.capabilities{border-color:var(--line)}
+.capabilities article{
+  position:relative;
+  background:linear-gradient(180deg,rgb(18 25 37 / 46%),rgb(8 11 17 / 20%));
+  border-color:var(--line);
+}
+.capabilities article::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:-1px;
+  width:92px;
+  height:2px;
+  background:#2f8cff;
+}
+.capabilities article:nth-child(2)::before{background:#7c4dff}
+.capabilities article:nth-child(3)::before{background:#15d1be}
+.capabilities article:nth-child(4)::before{background:#f5f7fb}
+.capabilities article>span,
+.capabilities footer{color:#707b8f;border-color:var(--line)}
+
+.terminal-section{background:#0a0e14}
+.terminal-grid pre,
+.install pre{
+  color:#dfe5ef;
+  background:#05070b;
+  border-color:#303a4b;
+}
+.terminal-grid pre span{color:#15d1be}
+
+.learning-loop div{
+  background:#0f141d;
+  border-color:var(--line);
+}
+.learning-loop small{color:#707b8f}
+.learning-loop i{color:#536075}
+.learning-loop .knowledge{background:#0c1718;border-color:#1d615c}
+
+.gate-section{background:#0b0f16;border-color:var(--line)}
+.route{border-color:var(--line)}
+.route span,.route b{border-color:var(--line)}
+.route span{color:var(--muted)}
+.route b{color:#cbd2df}
+.route b:nth-of-type(2){color:#bcaaff}
+.route b:nth-of-type(3){color:#96c8ff}
+.route b:nth-of-type(4){color:#79e1d5}
+
+.footer{border-color:var(--line);color:var(--muted)}
+.footer .brand{color:var(--ink)}
+
+@media(max-width:680px){
+  .brand small{display:none}
+  .hero::before{left:-760px}
+  .hero::after{right:-720px}
+}
