@@ -9,7 +9,7 @@
     "observedRunnerId": 0,
     "requiredRunner": "self-hosted",
     "targetOS": "Windows",
-    "shell": "runner-default"
+    "shell": "explicit runner_shell input"
   },
   "metrics": [
     "reusable_workflow_start_success",
@@ -29,6 +29,12 @@
       "repository": "Pom4H/game-engine",
       "runId": 35699807888,
       "observation": "The self-hosted Windows runner started successfully, then failed at Configure evidence transport because bash is not installed as an Actions shell."
+    },
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35700259542,
+      "observation": "Runner-default PowerShell was selected on Windows but local execution policy blocks generated .ps1 scripts; the target repository already uses cmd successfully."
     }
   ],
   "decision": null
