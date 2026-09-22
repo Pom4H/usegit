@@ -4,7 +4,7 @@ This repository is a self-hosting experiment. The development process is part of
 
 1. Run `npm run context` before editing. Do not reconstruct history from the current tree alone.
 2. Inspect `work.active`, `work.awaiting` and `work.stale` before starting anything. Do not duplicate existing work.
-3. Create or claim a `WORK-*` unit before implementation. Set a unique `USEGIT_AGENT_ID` when agents can run concurrently.
+3. Create or claim a `WORK-*` unit before implementation. Declare its intended paths with `--scope` (exact paths, `path/**`, or `**`) and inspect `work.conflicts` before editing. Set a unique `USEGIT_AGENT_ID` when agents can run concurrently.
 4. An unexpired lease means another agent owns the next decision for that work. Never steal it. An expired lease is surfaced as `stale` and may be resumed.
 5. Before waiting on CI or another external event, run `usegit await WORK-* --event ...` and store success/failure continuations. Awaiting releases the lease so the current invocation may safely end.
 6. A later invocation starts from `usegit context`, then uses `usegit resume WORK-* --result ...` when the awaited evidence exists. Chat history must not be required for resumption.

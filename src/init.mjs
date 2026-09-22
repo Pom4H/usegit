@@ -61,7 +61,7 @@ function agentBlock(toolRef) {
     'This repository uses usegit as design-time memory and durable execution state. A model invocation owns only the next decision; Git owns the work state.',
     '',
     '1. Before editing, run `' + tool + ' context`. Inspect causal history plus `work.active`, `work.awaiting`, and `work.stale`; do not duplicate existing work.',
-    '2. Before implementation, create or claim a `WORK-*` unit. Set a unique `USEGIT_AGENT_ID` when multiple agents can run concurrently.',
+    '2. Before implementation, create or claim a `WORK-*` unit with `--scope` (exact paths, `path/**`, or `**`). Inspect `work.conflicts` before editing. Set a unique `USEGIT_AGENT_ID` when multiple agents can run concurrently.',
     '3. Never steal an unexpired lease. Before waiting on CI or another external event, persist the continuation with `' + tool + ' await WORK-* --event ...`. A later fresh invocation resumes with `' + tool + ' resume WORK-* --result ...`.',
     '4. Work under an experiment with one falsifiable hypothesis. Create an experiment record when no existing experiment covers the change.',
     '5. Keep one stable `Usegit-Change-Id` across revisions of the same conceptual change.',

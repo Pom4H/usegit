@@ -10,6 +10,7 @@
     "goal": { "type": "string", "minLength": 1 },
     "hypothesis": { "type": "string", "minLength": 1 },
     "experiment": { "type": ["string", "null"] },
+    "scopes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "base": { "type": "string", "minLength": 1 },
     "status": { "enum": ["active", "awaiting", "accepted", "rejected", "falsified"] },
     "lease": {

@@ -48,6 +48,7 @@ function workCommand(action, values) {
       goal: args.goal,
       hypothesis: args.hypothesis,
       experiment: args.experiment ?? null,
+      scopes: args.scope ? String(args.scope).split(',').map((x) => x.trim()).filter(Boolean) : [],
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',

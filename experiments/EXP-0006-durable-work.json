@@ -16,6 +16,15 @@
     "lost_update_count",
     "human_clarifications"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "kind": "blind-handoff",
+      "work": "WORK-BLIND-0001",
+      "awaitedEvent": "github-actions:run-35695189535",
+      "observation": "Fresh invocation recovered the awaiting WORK ref from Git, independently verified the referenced workflow run concluded success, and selected the encoded success continuation without prior chat context.",
+      "continuation": "add declarative WORK scopes and compact overlap/conflict reporting",
+      "observedAt": "2026-09-22T06:39:00Z"
+    }
+  ],
   "decision": null
 }

@@ -1,3 +1,5 @@
+import { normalizeScopes, workConflicts } from './scope.mjs';
+
 const TERMINAL = new Set(['accepted', 'rejected', 'falsified']);
 
 function iso(value) {
@@ -9,7 +11,8 @@ export function createWorkState({
   goal,
   hypothesis,
   experiment = null,
-  base,
+  scopes = [],
+  base:
   owner,
   now = Date.now(),
   leaseMs = 30 * 60_000,
@@ -24,6 +27,7 @@ export function createWorkState({
     goal,
     hypothesis,
     experiment,
+    scopes: normalizeScopes(scopes),
     base,
     status: 'active',
     createdAt: iso(now),
@@ -169,6 +173,7 @@ export function compactWorkOverview(states, now = Date.now()) {
     status: effectiveWorkStatus(work, now),
     goal: work.goal,
     experiment: work.experiment,
+    scopes: normalizeScopes(work.scopes ?? []),
     owner: work.lease?.owner ?? null,
     leaseExpiresAt: work.lease?.expiresAt ?? null,
     awaiting: work.awaiting?.event ?? null,
@@ -181,5 +186,6 @@ export function compactWorkOverview(states, now = Date.now()) {
     awaiting: rows.filter((x) => x.status === 'awaiting'),
     stale: rows.filter((x) => x.status === 'stale'),
     finished: rows.filter((x) => TERMINAL.has(x.status)),
+    conflicts: workConflicts(rows),
   };
 }

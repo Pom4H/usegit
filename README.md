@@ -60,10 +60,11 @@ export USEGIT_AGENT_ID=chatgpt-a
 usegit start \
   --goal "reduce reality gap below 0.05" \
   --hypothesis "contact shadows improve similarity" \
-  --experiment EXP-0017
+  --experiment EXP-0017 \\
+  --scope "src/render/**,test/render/**"
 ```
 
-The returned `WORK-*` ref has an expiring lease. Before waiting on CI or another external event, persist a continuation and release the lease:
+Scopes are exact paths, `path/**` subtrees, or `**`. `usegit status` reports active scope overlaps (and undeclared scopes) so agents can avoid competing for the same causal surface before editing. The returned `WORK-*` ref has an expiring lease. Before waiting on CI or another external event, persist a continuation and release the lease:
 
 ```bash
 usegit await WORK-1234ABCD \
