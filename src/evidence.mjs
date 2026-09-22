@@ -42,8 +42,8 @@ export function normalizeEvidence(input = {}) {
     observation: input.observation ?? null,
     source: input.source ?? null,
     subject: {
-      commit: input.commit ?? null,
-      tree: input.tree ?? null,
+      commit: input.commit ?? input.subject?.commit ?? null,
+      tree: input.tree ?? input.subject?.tree ?? null,
     },
     environment,
     environmentHash: environmentFingerprint(environment),
