@@ -21,16 +21,14 @@ import {
 const PREFIX = 'refs/usegit/work/';
 
 function refFor(id) {
-  if (!/^WORK-[A-Za-z0-9._-]+$/.test(id)) {
-    throw new Error(`invalid work id: ${id}`);
-  }
-  return `${PREFIX}${id}`;
+  if (!/^WORK-[A-Za-z0-9._-]+$/.test(id)) throw new Error('invalid work id: ' + id);
+  return PREFIX + id;
 }
 
 function defaultOwner() {
   if (process.env.USEGIT_AGENT_ID) return process.env.USEGIT_AGENT_ID;
   const user = process.env.USER ?? process.env.USERNAME ?? 'user';
-  return `local:${user}@${os.hostname()}`;
+  return 'local:' + user + '@' + os.hostname();
 }
 
 function hasRemote(remote = 'origin') {
@@ -39,7 +37,7 @@ function hasRemote(remote = 'origin') {
 
 export function syncWorkRefs(remote = 'origin') {
   if (!hasRemote(remote)) return { remote: null, synced: false };
-  tryGit(['fetch', remote, `+${PREFIX}*:${PREFIX}*`]);
+  tryGit(['fetch', remote, '+' + PREFIX + '*:' + PREFIX + '*']);
   return { remote, synced: true };
 }
 
@@ -53,7 +51,7 @@ function refEntries() {
 }
 
 function readStateFromRef(ref) {
-  return JSON.parse(git(['show', `${ref}:work.json`]));
+  return JSON.parse(git(['show', ref + ':work.json']));
 }
 
 export function listWorkStates({ sync = false, remote = 'origin' } = {}) {
@@ -64,11 +62,11 @@ export function listWorkStates({ sync = false, remote = 'origin' } = {}) {
 }
 
 function writeState(state, expectedCommit = null) {
-  const content = `${JSON.stringify(state, null, 2)}\n`;
+  const content = JSON.stringify(state, null, 2) + '\n';
   const blob = git(['hash-object', '-w', '--stdin'], { input: content });
-  const tree = git(['mktree'], { input: `100644 blob ${blob}\twork.json\n` });
+  const tree = git(['mktree'], { input: '100644 blob ' + blob + '\twork.json\n' });
 
-  const args = ['commit-tree', tree, '-m', `usegit-work: ${state.id} ${state.status}`];
+  const args = ['commit-tree', tree, '-m', 'usegit-work: ' + state.id + ' ' + state.status];
   if (expectedCommit) args.push('-p', expectedCommit);
   const commit = git(args, {
     env: {
@@ -83,7 +81,7 @@ function writeState(state, expectedCommit = null) {
   if (expectedCommit) {
     git(['update-ref', ref, commit, expectedCommit]);
   } else {
-    if (tryGit(['rev-parse', '--verify', ref])) throw new Error(`${state.id} already exists`);
+    if (tryGit(['rev-parse', '--verify', ref])) throw new Error(state.id + ' already exists');
     git(['update-ref', ref, commit]);
   }
 
@@ -94,15 +92,12 @@ function pushState(ref, commit, previousCommit, remote = 'origin') {
   if (!hasRemote(remote)) return { durability: 'local', remote: null };
 
   try {
-    git(['push', remote, `${ref}:${ref}`]);
+    git(['push', remote, ref + ':' + ref]);
     return { durability: 'remote', remote };
   } catch (error) {
-    if (previousCommit) {
-      tryGit(['update-ref', ref, previousCommit, commit]);
-    } else {
-      tryGit(['update-ref', '-d', ref, commit]);
-    }
-    throw new Error(`failed to publish ${ref}; remote state moved or push was rejected`, { cause: error });
+    if (previousCommit) tryGit(['update-ref', ref, previousCommit, commit]);
+    else tryGit(['update-ref', '-d', ref, commit]);
+    throw new Error('failed to publish ' + ref + '; remote state moved or push was rejected', { cause: error });
   }
 }
 
@@ -114,7 +109,7 @@ function persist(state, previousCommit = null, remote = 'origin') {
 function current(id) {
   const ref = refFor(id);
   const commit = tryGit(['rev-parse', '--verify', ref]);
-  if (!commit) throw new Error(`unknown work: ${id}`);
+  if (!commit) throw new Error('unknown work: ' + id);
   return { state: readStateFromRef(ref), commit };
 }
 
@@ -125,21 +120,17 @@ function gitSubject() {
 }
 
 function generatedId() {
-  return `WORK-${randomUUID().slice(0, 8).toUpperCase()}`;
+  return 'WORK-' + randomUUID().slice(0, 8).toUpperCase();
 }
 
 function stableSpec(state) {
   return JSON.stringify({
     goal: state.goal,
-    hypothesis: state.hypothesis,
-    experiment: state.experiment ?? null,
     batchId: state.batchId ?? null,
     priority: state.priority ?? 0,
     dependsOn: state.dependsOn ?? [],
     scopes: state.scopes ?? [],
     resources: normalizeResources(state.resources ?? []),
-    contract: state.contract ?? {},
-    routing: state.route?.signals ?? {},
   });
 }
 
@@ -171,45 +162,47 @@ function buildEvidence({
   });
 }
 
-export function startWork({
+function createWork({
   id = generatedId(),
   goal,
-  hypothesis,
-  experiment = null,
   scopes = [],
   resources = [],
-  contract = {},
-  routing = {},
   batchId = null,
   priority = 0,
   dependsOn = [],
   owner = defaultOwner(),
   leaseMinutes = 30,
+  ready = false,
   remote = 'origin',
 } = {}) {
   syncWorkRefs(remote);
-  if (tryGit(['rev-parse', '--verify', refFor(id)])) throw new Error(`${id} already exists`);
+  if (tryGit(['rev-parse', '--verify', refFor(id)])) throw new Error(id + ' already exists');
 
   const subject = gitSubject();
   const state = createWorkState({
     id,
     goal,
-    hypothesis,
-    experiment,
     scopes,
     resources,
-    contract,
-    routing,
     batchId,
     priority,
     dependsOn,
     base: subject.commit,
     baseTree: subject.tree,
     owner,
+    ready,
     leaseMs: Number(leaseMinutes) * 60_000,
   });
 
   return persist(state, null, remote);
+}
+
+export function startWork(options = {}) {
+  return createWork({ ...options, ready: false });
+}
+
+export function enqueueWork(options = {}) {
+  return createWork({ ...options, ready: true });
 }
 
 export function createWorkBatch(plan, {
@@ -224,10 +217,8 @@ export function createWorkBatch(plan, {
 
   for (const item of batch.work) {
     for (const dependency of item.dependsOn) {
-      if (!available.has(dependency)) {
-        throw new Error(`${item.id} depends on unknown work ${dependency}`);
-      }
-      if (dependency === item.id) throw new Error(`${item.id} cannot depend on itself`);
+      if (!available.has(dependency)) throw new Error(item.id + ' depends on unknown work ' + dependency);
+      if (dependency === item.id) throw new Error(item.id + ' cannot depend on itself');
     }
   }
 
@@ -243,17 +234,18 @@ export function createWorkBatch(plan, {
         base: prior.base,
         baseTree: prior.baseTree ?? null,
         owner: prior.createdBy ?? owner,
+        ready: true,
         now: Date.parse(prior.createdAt),
         leaseMs: Number(leaseMinutes) * 60_000,
       });
       if (stableSpec(prior) !== stableSpec(expected)) {
-        throw new Error(`${item.id} already exists with a different specification`);
+        throw new Error(item.id + ' already exists with a different specification');
       }
       skipped.push(item.id);
       continue;
     }
 
-    const state = startWork({
+    const state = enqueueWork({
       ...item,
       batchId: batch.id,
       owner,
@@ -303,8 +295,8 @@ export function claimWork(id, {
   const ready = overview.workerReady.find((row) => row.id === id);
   if (!ready) {
     const blocked = overview.queueBlocked.find((row) => row.id === id);
-    if (blocked) throw new Error(`${id} is queue-blocked: ${JSON.stringify(blocked.blockedBy)}`);
-    throw new Error(`${id} is not worker-ready`);
+    if (blocked) throw new Error(id + ' is queue-blocked: ' + JSON.stringify(blocked.blockedBy));
+    throw new Error(id + ' is not worker-ready');
   }
 
   const { state, commit } = current(id);
@@ -345,7 +337,9 @@ export function claimNextWork({
     }
   }
 
-  throw new Error(`could not claim worker-ready work after ${retries} attempts: ${lastError?.message ?? 'unknown race'}`);
+  throw new Error(
+    'could not claim worker-ready work after ' + retries + ' attempts: ' + (lastError?.message ?? 'unknown race'),
+  );
 }
 
 export function recordWorkEvidence(id, {
@@ -433,7 +427,7 @@ export function finishWork(id, {
     const supporting = supportingEvidenceForTree(state.evidence ?? [], subject.tree);
     if (!supporting.length) {
       throw new Error(
-        `${id} cannot be accepted: no observed/attested successful evidence for current tree ${subject.tree}`,
+        id + ' cannot be accepted: no observed/attested successful evidence for current tree ' + subject.tree,
       );
     }
   }

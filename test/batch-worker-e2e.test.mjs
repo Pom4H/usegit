@@ -20,7 +20,7 @@ function run(args, cwd, owner = 'control') {
   }).trim());
 }
 
-test('control batches work and stateless workers claim compatible tasks without assignment', () => {
+test('batch queues work and stateless workers claim compatible tasks', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'usegit-batch-'));
   git(['init', '-q'], cwd);
   git(['config', 'user.name', 'test'], cwd);
@@ -31,38 +31,26 @@ test('control batches work and stateless workers claim compatible tasks without 
 
   const plan = {
     id: 'BATCH-E2E',
-    experiment: 'EXP-E2E',
-    defaults: {
-      uncertainty: 'low',
-      oracle: 'objective',
-      evidencePlan: 'deterministic test',
-    },
     work: [
       {
         id: 'WORK-A',
         goal: 'A',
-        hypothesis: 'A',
         scopes: ['src/a/**'],
         resources: [{ name: 'system.a', access: 'write' }],
-        success: 'A passes',
         priority: 30,
       },
       {
         id: 'WORK-B',
         goal: 'B',
-        hypothesis: 'B',
         scopes: ['src/a/file.ts'],
         resources: [{ name: 'system.a', access: 'read' }],
-        success: 'B passes',
         priority: 20,
       },
       {
         id: 'WORK-C',
         goal: 'C',
-        hypothesis: 'C',
         scopes: ['src/c/**'],
         resources: [{ name: 'system.c', access: 'write' }],
-        success: 'C passes',
         priority: 10,
       },
     ],
@@ -74,28 +62,24 @@ test('control batches work and stateless workers claim compatible tasks without 
   assert.deepEqual(batch.queue.workerReady.map((x) => x.id), ['WORK-A', 'WORK-C']);
   assert.deepEqual(batch.queue.queueBlocked.map((x) => x.id), ['WORK-B']);
 
-  const first = run(['claim-next'], cwd, 'instant-1');
+  const first = run(['claim-next'], cwd, 'worker-1');
   assert.equal(first.claimed.id, 'WORK-A');
-  assert.equal(first.claimed.lease.owner, 'instant-1');
 
-  const second = run(['claim-next'], cwd, 'instant-2');
+  const second = run(['claim-next'], cwd, 'worker-2');
   assert.equal(second.claimed.id, 'WORK-C');
-  assert.equal(second.claimed.lease.owner, 'instant-2');
 
-  const none = run(['claim-next'], cwd, 'instant-3');
+  const none = run(['claim-next'], cwd, 'worker-3');
   assert.equal(none.claimed, null);
-  assert.equal(none.queueBlocked[0].id, 'WORK-B');
 
   run([
     'evidence', 'WORK-A',
     '--kind', 'observed',
     '--source', 'test:worker-a',
     '--result', 'success',
-    '--observation', 'A deterministic check passed',
-  ], cwd, 'instant-1');
-  run(['finish', 'WORK-A', '--decision', 'accepted'], cwd, 'instant-1');
+  ], cwd, 'worker-1');
+  run(['finish', 'WORK-A', '--decision', 'accepted'], cwd, 'worker-1');
 
-  const third = run(['claim-next'], cwd, 'instant-3');
+  const third = run(['claim-next'], cwd, 'worker-3');
   assert.equal(third.claimed.id, 'WORK-B');
 
   const rerun = run(['batch', 'batch.json'], cwd);

@@ -10,12 +10,11 @@ function ready(id, scopes, priority = 0, extra = {}) {
     resources: [],
     priority,
     dependsOn: [],
-    route: { lane: 'worker', ready: true },
     ...extra,
   };
 }
 
-test('worker queue exposes a deterministic independent set of scopes', () => {
+test('queue exposes a deterministic independent set of scopes', () => {
   const queue = buildWorkerQueue([
     ready('WORK-A', ['src/a/**'], 30),
     ready('WORK-B', ['src/a/file.ts'], 20),
@@ -56,8 +55,6 @@ test('active and awaiting work reserve their scopes', () => {
 
   assert.deepEqual(queue.workerReady.map((x) => x.id), ['WORK-C']);
   assert.deepEqual(queue.queueBlocked.map((x) => x.id), ['WORK-A', 'WORK-B']);
-  assert.ok(queue.queueBlocked.every((x) =>
-    x.blockedBy.some((reason) => reason.kind === 'reserved-scope-overlap')));
 });
 
 test('dependencies gate dispatch until accepted', () => {

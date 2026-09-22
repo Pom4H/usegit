@@ -7,16 +7,11 @@
   },
   "scripts": {
     "test": "node --test",
+    "test:protocol": "node --test test/evidence-integrity.test.mjs test/protocol-race.e2e.mjs test/doctor-chaos.test.mjs",
     "init": "node src/cli.mjs init",
-    "validate": "node src/cli.mjs validate",
     "doctor": "node src/cli.mjs doctor",
-    "report": "node src/cli.mjs report",
-    "next": "node src/cli.mjs next",
-    "context": "node src/cli.mjs context",
     "batch": "node src/cli.mjs batch",
-    "route": "node src/cli.mjs route",
-    "boundary": "node src/cli.mjs boundary",
-    "integration": "node src/cli.mjs integration",
+    "enqueue": "node src/cli.mjs enqueue",
     "work": "node src/cli.mjs work",
     "start": "node src/cli.mjs start",
     "status": "node src/cli.mjs status",
@@ -26,38 +21,24 @@
     "claim-next": "node src/cli.mjs claim-next",
     "evidence": "node src/cli.mjs evidence",
     "resume": "node src/cli.mjs resume",
-    "finish": "node src/cli.mjs finish",
-    "view": "node src/cli.mjs view",
-    "test:protocol": "node --test test/evidence-integrity.test.mjs test/protocol-race.e2e.mjs test/doctor-chaos.test.mjs",
-    "agents": "node src/cli.mjs agents",
-    "agents:benchmark": "node src/agent-context-benchmark.mjs",
-    "agents:challenge": "node src/agent-context-challenge-cli.mjs",
-    "capsule": "node src/cli.mjs capsule",
-    "capsule:challenge": "node src/decision-capsule-challenge-cli.mjs",
-    "decision:verify": "node src/fresh-agent-benchmark-cli.mjs verify",
-    "decision:matrix": "node src/fresh-agent-benchmark-cli.mjs matrix",
-    "decision:fixture": "node src/fresh-agent-benchmark-cli.mjs fixture",
-    "decision:grade": "node src/fresh-agent-benchmark-cli.mjs grade",
-    "decision:prepare": "node src/fresh-agent-benchmark-cli.mjs prepare"
+    "finish": "node src/cli.mjs finish"
   },
   "engines": {
     "node": ">=22"
   },
-  "description": "Causal Git memory and durable execution state for AI-native software development.",
+  "description": "Git-native coordination for coding agents.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Pom4H/usegit.git"
   },
-  "homepage": "https://pom4h.github.io/usegit/",
+  "homepage": "https://github.com/Pom4H/usegit",
   "bugs": {
     "url": "https://github.com/Pom4H/usegit/issues"
   },
   "files": [
     "src",
     "docs",
-    ".usegit",
-    "experiments",
     "AGENTS.md",
     "README.md",
     "LICENSE"
