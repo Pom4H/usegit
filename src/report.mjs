@@ -29,26 +29,41 @@ export function latestRevisionPerChange(samples) {
   return [...unique.values()];
 }
 
-function replayState(experiments, strategies) {
+export function replayState(experiments, strategies) {
   const exp = experiments.find((x) => x.id === 'EXP-0002');
   const benchmark = exp?.controlledBenchmark;
   if (!benchmark) return null;
 
+  const strategyNames = ['coarse', 'fine', 'dynamic'];
   const minimum = exp.minimumSamplesPerVariant ?? 0;
   const sampleReady = Object.values(strategies).every((x) => x.samples >= minimum);
-  const required = benchmark.requiredReplayRunsPerVariant ?? 0;
+  const taskIds = benchmark.taskIds ?? [];
+  const repetitionsPerTask = benchmark.repetitionsPerTask ?? 1;
   const results = Array.isArray(benchmark.results) ? benchmark.results : [];
-  const completed = Object.fromEntries(['coarse', 'fine', 'dynamic'].map((strategy) => [
+
+  const completedMatrix = Object.fromEntries(strategyNames.map((strategy) => [
     strategy,
-    results.filter((x) => x.strategy === strategy).length,
+    Object.fromEntries(taskIds.map((task) => [
+      task,
+      results.filter((x) => x.strategy === strategy && x.task === task).length,
+    ])),
   ]));
-  const complete = sampleReady && Object.values(completed).every((count) => count >= required);
+
+  const complete = sampleReady && strategyNames.every((strategy) =>
+    taskIds.every((task) => completedMatrix[strategy][task] >= repetitionsPerTask));
+
+  const completedRuns = Object.values(completedMatrix)
+    .flatMap((tasks) => Object.values(tasks))
+    .reduce((sum, count) => sum + count, 0);
 
   return {
     benchmarkId: benchmark.id,
     sampleReady,
-    requiredRunsPerVariant: required,
-    completedRuns: completed,
+    taskIds,
+    repetitionsPerTask,
+    completedMatrix,
+    completedRuns,
+    requiredRuns: strategyNames.length * taskIds.length * repetitionsPerTask,
     complete,
     targetTree: benchmark.targetTree,
     branches: benchmark.branches,

@@ -8,21 +8,9 @@
     "targetTree": "8aaf353048cfa4f516c288459a3cd80ffed1deea"
   },
   "blindHistories": {
-    "A": {
-      "branch": "bench/granularity/a-v1",
-      "head": "4c805162eec5bf418a7073e7922801e5fbb06e3b",
-      "commits": 3
-    },
-    "B": {
-      "branch": "bench/granularity/b-v1",
-      "head": "b8e0bf80c866595468b128fb7e1053eafc40dc3d",
-      "commits": 1
-    },
-    "C": {
-      "branch": "bench/granularity/c-v1",
-      "head": "82ec36b822ab2a57f772eb7a0f2c185384315d93",
-      "commits": 5
-    }
+    "A": { "branch": "bench/granularity/a-v1", "head": "4c805162eec5bf418a7073e7922801e5fbb06e3b", "commits": 3 },
+    "B": { "branch": "bench/granularity/b-v1", "head": "b8e0bf80c866595468b128fb7e1053eafc40dc3d", "commits": 1 },
+    "C": { "branch": "bench/granularity/c-v1", "head": "82ec36b822ab2a57f772eb7a0f2c185384315d93", "commits": 5 }
   },
   "evaluatorMapping": {
     "A": "dynamic",
@@ -30,6 +18,7 @@
     "C": "fine"
   },
   "fixtureArtifact": "granularity-blind-replay",
+  "repetitionsPerTask": 3,
   "tasks": [
     {
       "id": "reconstruct",
@@ -49,9 +38,10 @@
   ],
   "invariants": [
     "All three benchmark histories must end at exactly the same tree SHA.",
-    "The replay agent receives only one isolated Git bundle whose only branch is main.",
-    "The replay agent must not receive the evaluator mapping or repository remote.",
+    "The replay agent receives only one isolated Git workspace whose branch is main and which has no remote.",
+    "The replay agent must not receive the evaluator mapping.",
+    "Each strategy/task cell is repeated three times with fresh agent context and identical model/tool settings.",
     "Replay results must record model/runtime identity and tool-call transcript metadata.",
-    "No aggregate winner is allowed until every treatment has the required replay count."
+    "No aggregate winner is allowed until all 27 cells/repetitions are complete."
   ]
 }

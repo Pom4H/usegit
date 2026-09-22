@@ -21,16 +21,25 @@ export function nextExperiment(report) {
 
   const replay = report.granularityReplay;
   if (replay?.sampleReady && !replay.complete) {
-    const needs = Object.entries(replay.completedRuns)
-      .filter(([, count]) => count < replay.requiredRunsPerVariant)
-      .map(([strategy]) => strategy);
+    const assignments = [];
+    for (const [strategy, tasks] of Object.entries(replay.completedMatrix)) {
+      for (const [task, count] of Object.entries(tasks)) {
+        if (count < replay.repetitionsPerTask) {
+          assignments.push({
+            strategy,
+            task,
+            remaining: replay.repetitionsPerTask - count,
+          });
+        }
+      }
+    }
 
     return {
       kind: 'run-controlled-granularity-replay',
       benchmark: replay.benchmarkId,
-      strategies: needs,
+      assignments,
       hypothesis: 'Paired replay on identical final trees can separate history quality from task complexity.',
-      reason: 'Observational granularity samples are confounded; controlled replay is required before selecting a policy.',
+      reason: `${replay.completedRuns}/${replay.requiredRuns} blinded runs complete; every strategy/task cell needs independent replication.`,
     };
   }
 

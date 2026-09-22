@@ -43,23 +43,32 @@ test('does not compare policies before minimum evidence exists', () => {
   assert.equal(next.strategy, 'fine');
 });
 
-test('requires paired replay after observational samples are sufficient', () => {
+test('requires every strategy/task cell to be independently replicated', () => {
   const next = nextExperiment({
     ...base,
     strategies: {
       coarse: { samples: 3 },
       fine: { samples: 3 },
-      dynamic: { samples: 4 },
+      dynamic: { samples: 5 },
     },
     granularityReplay: {
       benchmarkId: 'granularity-v1',
       sampleReady: true,
-      requiredRunsPerVariant: 3,
-      completedRuns: { coarse: 0, fine: 0, dynamic: 0 },
+      repetitionsPerTask: 3,
+      completedMatrix: {
+        coarse: { reconstruct: 3, 'surgical-revert': 2, continue: 3 },
+        fine: { reconstruct: 3, 'surgical-revert': 3, continue: 3 },
+        dynamic: { reconstruct: 3, 'surgical-revert': 3, continue: 3 },
+      },
+      completedRuns: 26,
+      requiredRuns: 27,
       complete: false,
     },
   });
 
   assert.equal(next.kind, 'run-controlled-granularity-replay');
-  assert.deepEqual(next.strategies, ['coarse', 'fine', 'dynamic']);
+  assert.deepEqual(next.assignments, [
+    { strategy: 'coarse', task: 'surgical-revert', remaining: 1 },
+  ]);
+  assert.match(next.reason, /26\/27/);
 });
