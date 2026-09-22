@@ -7,6 +7,7 @@ import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
 import { checkAgentContext, compileAgentContext, writeAgentContext } from './agent-context.mjs';
+import { compileDecisionCapsule, readUntrustedWorkContent } from './decision-capsule.mjs';
 import { decideIntegration } from './integration.mjs';
 import { initializeRepository } from './init.mjs';
 import { recommendRoute } from './routing.mjs';
@@ -208,6 +209,24 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'capsule') {
+    const args = parseArgs(process.argv.slice(3));
+    const compiled = compileDecisionCapsule({
+      sync: !args.local,
+      remote: args.remote ?? 'origin',
+      maxWork: args.maxWork ?? 32,
+      currentAgentId: args.owner ?? process.env.USEGIT_AGENT_ID ?? null,
+    });
+    process.stdout.write(compiled.json);
+  } else if (command === 'content') {
+    const args = parseArgs(process.argv.slice(3));
+    const id = args._[0] ?? args.id;
+    const field = args.field ?? args._[1];
+    if (!id || !field) throw new Error('content requires WORK id and --field');
+    print(readUntrustedWorkContent(id, field, {
+      sync: !args.local,
+      remote: args.remote ?? 'origin',
+    }));
   } else if (command === 'agents') {
     const args = parseArgs(process.argv.slice(3));
     const options = {

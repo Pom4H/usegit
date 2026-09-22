@@ -27,6 +27,7 @@ jobs:
       - run: npm run report > usegit-report.json
       - run: npm run agents:benchmark | tee usegit-agent-context.json
       - run: npm run agents:challenge | tee usegit-agent-context-challenge.json
+      - run: npm run capsule:challenge | tee usegit-decision-capsule-challenge.json
       - uses: actions/upload-artifact@v4
         with:
           name: usegit-report
@@ -35,6 +36,7 @@ jobs:
             usegit-doctor.json
             usegit-agent-context.json
             usegit-agent-context-challenge.json
+            usegit-decision-capsule-challenge.json
 
   protocol-chaos:
     needs: validate
