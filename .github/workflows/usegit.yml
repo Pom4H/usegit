@@ -67,7 +67,7 @@ jobs:
 
 
   blind-ai-handoff-arm:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' && contains(github.event.head_commit.message, 'Usegit-Arm-Blind-Handoff: true') }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' && contains(github.event.head_commit.message, 'Usegit-Arm-Blind-Handoff') }}
     needs: validate
     runs-on: ubuntu-latest
     steps:
