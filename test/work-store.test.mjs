@@ -40,6 +40,7 @@ test('WORK state survives process boundaries entirely inside Git refs', () => {
 
   const stored = JSON.parse(git(['show', 'refs/usegit/work/WORK-TEST:work.json'], cwd));
   assert.equal(stored.goal, 'prove durable state');
+  assert.equal(stored.baseTree, git(['rev-parse', 'HEAD^{tree}'], cwd));
 
   const waiting = JSON.parse(run([
     'await', 'WORK-TEST',
@@ -59,9 +60,12 @@ test('WORK state survives process boundaries entirely inside Git refs', () => {
     '--owner', 'agent-b',
     '--result', 'success',
     '--evidence', 'CI passed',
+    '--evidence-kind', 'observed',
+    '--evidence-source', 'test:ci',
   ], { cwd, encoding: 'utf8' }).trim());
   assert.equal(resumed.lease.owner, 'agent-b');
   assert.equal(resumed.selectedContinuation, 'finish validation');
+  assert.equal(resumed.evidence.at(-1).kind, 'observed');
 
   const finished = JSON.parse(execFileSync(process.execPath, [
     cli,
@@ -71,6 +75,7 @@ test('WORK state survives process boundaries entirely inside Git refs', () => {
     '--summary', 'resume worked',
   ], { cwd, encoding: 'utf8' }).trim());
   assert.equal(finished.status, 'accepted');
+  assert.equal(finished.decision.subject.tree, git(['rev-parse', 'HEAD^{tree}'], cwd));
 
   const commits = git(['rev-list', '--count', 'refs/usegit/work/WORK-TEST'], cwd);
   assert.equal(commits, '4');

@@ -7,6 +7,7 @@ function ready(id, scopes, priority = 0, extra = {}) {
     id,
     status: 'ready',
     scopes,
+    resources: [],
     priority,
     dependsOn: [],
     route: { lane: 'worker', ready: true },
@@ -27,10 +28,27 @@ test('worker queue exposes a deterministic independent set of scopes', () => {
   assert.equal(queue.queueBlocked[0].blockedBy[0].kind, 'ready-scope-overlap');
 });
 
+test('semantic resources block hidden conflicts across disjoint files', () => {
+  const queue = buildWorkerQueue([
+    ready('WORK-A', ['src/a/**'], 30, {
+      resources: [{ name: 'renderer.lighting', access: 'write' }],
+    }),
+    ready('WORK-B', ['src/b/**'], 20, {
+      resources: [{ name: 'renderer.lighting', access: 'read' }],
+    }),
+    ready('WORK-C', ['src/c/**'], 10, {
+      resources: [{ name: 'renderer.materials', access: 'write' }],
+    }),
+  ]);
+
+  assert.deepEqual(queue.workerReady.map((x) => x.id), ['WORK-A', 'WORK-C']);
+  assert.ok(queue.queueBlocked[0].blockedBy.some((x) => x.kind === 'ready-resource-overlap'));
+});
+
 test('active and awaiting work reserve their scopes', () => {
   const queue = buildWorkerQueue([
-    { id: 'WORK-LIVE', status: 'active', scopes: ['src/a/**'] },
-    { id: 'WORK-WAIT', status: 'awaiting', scopes: ['src/b/**'] },
+    { id: 'WORK-LIVE', status: 'active', scopes: ['src/a/**'], resources: [] },
+    { id: 'WORK-WAIT', status: 'awaiting', scopes: ['src/b/**'], resources: [] },
     ready('WORK-A', ['src/a/new.ts'], 20),
     ready('WORK-B', ['src/b/new.ts'], 10),
     ready('WORK-C', ['src/c/**'], 5),
@@ -44,14 +62,14 @@ test('active and awaiting work reserve their scopes', () => {
 
 test('dependencies gate dispatch until accepted', () => {
   const pending = buildWorkerQueue([
-    { id: 'WORK-BASE', status: 'active', scopes: ['src/base/**'] },
+    { id: 'WORK-BASE', status: 'active', scopes: ['src/base/**'], resources: [] },
     ready('WORK-NEXT', ['src/next/**'], 10, { dependsOn: ['WORK-BASE'] }),
   ]);
   assert.equal(pending.workerReady.length, 0);
   assert.equal(pending.queueBlocked[0].blockedBy[0].kind, 'waiting-dependency');
 
   const accepted = buildWorkerQueue([
-    { id: 'WORK-BASE', status: 'accepted', scopes: ['src/base/**'] },
+    { id: 'WORK-BASE', status: 'accepted', scopes: ['src/base/**'], resources: [] },
     ready('WORK-NEXT', ['src/next/**'], 10, { dependsOn: ['WORK-BASE'] }),
   ]);
   assert.deepEqual(accepted.workerReady.map((x) => x.id), ['WORK-NEXT']);

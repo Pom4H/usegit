@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["schemaVersion", "id", "goal", "hypothesis", "base", "status", "createdAt", "updatedAt", "evidence"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "enum": [1, 2] },
     "id": { "type": "string", "pattern": "^WORK-[A-Za-z0-9._-]+$" },
     "goal": { "type": "string", "minLength": 1 },
     "hypothesis": { "type": "string", "minLength": 1 },
@@ -14,6 +14,18 @@
     "priority": { "type": "number" },
     "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "scopes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "access"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "access": { "enum": ["read", "write"] }
+        },
+        "additionalProperties": false
+      }
+    },
     "contract": {
       "type": "object",
       "properties": {
@@ -22,41 +34,30 @@
       },
       "additionalProperties": false
     },
-    "route": {
-      "type": "object",
-      "required": ["lane", "reasoning", "ready", "source", "blockers", "signals"],
-      "properties": {
-        "lane": { "enum": ["worker", "control"] },
-        "reasoning": { "enum": ["instant", "deep"] },
-        "ready": { "type": "boolean" },
-        "source": { "enum": ["policy", "explicit", "escalation"] },
-        "blockers": { "type": "array", "items": { "type": "string" } },
-        "signals": { "type": "object" }
-      },
-      "additionalProperties": true
-    },
+    "route": { "type": "object" },
     "base": { "type": "string", "minLength": 1 },
+    "baseTree": { "type": ["string", "null"] },
     "status": { "enum": ["ready", "active", "awaiting", "escalated", "accepted", "rejected", "falsified"] },
     "createdBy": { "type": ["string", "null"] },
-    "lease": {
-      "anyOf": [
-        { "type": "null" },
-        {
-          "type": "object",
-          "required": ["owner", "acquiredAt", "expiresAt"],
-          "properties": {
-            "owner": { "type": "string" },
-            "acquiredAt": { "type": "string" },
-            "expiresAt": { "type": "string" }
-          }
-        }
-      ]
-    },
+    "lease": { "type": ["object", "null"] },
     "awaiting": { "type": ["object", "null"] },
     "continuation": { "type": ["object", "null"] },
     "selectedContinuation": { "type": ["string", "null"] },
     "escalation": { "type": ["object", "null"] },
-    "evidence": { "type": "array" },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "enum": ["asserted", "observed", "attested"] },
+          "result": {},
+          "source": { "type": ["string", "null"] },
+          "subject": { "type": "object" },
+          "environmentHash": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
     "decision": { "type": ["object", "null"] }
   },
   "additionalProperties": true

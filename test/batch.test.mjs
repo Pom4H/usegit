@@ -10,6 +10,7 @@ test('batch defaults expand into deterministic worker specifications', () => {
       uncertainty: 'low',
       oracle: 'objective',
       evidencePlan: 'CI',
+      resources: [{ name: 'metric.quality', access: 'read' }],
     },
     work: [{
       id: 'WORK-A',
@@ -27,6 +28,7 @@ test('batch defaults expand into deterministic worker specifications', () => {
   assert.equal(batch.work[0].routing.oracle, 'objective');
   assert.equal(batch.work[0].contract.evidence, 'CI');
   assert.equal(batch.work[0].priority, 7);
+  assert.deepEqual(batch.work[0].resources, [{ name: 'metric.quality', access: 'read' }]);
 });
 
 test('batch rejects duplicate ids before mutating Git', () => {

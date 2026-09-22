@@ -1,4 +1,6 @@
+import { normalizeEvidence } from './evidence.mjs';
 import { buildWorkerQueue } from './queue.mjs';
+import { normalizeResources, workResourceConflicts } from './resource.mjs';
 import { escalateRoute, recommendRoute } from './routing.mjs';
 import { normalizeScopes, workConflicts } from './scope.mjs';
 
@@ -26,12 +28,14 @@ export function createWorkState({
   hypothesis,
   experiment = null,
   scopes = [],
+  resources = [],
   contract = {},
   routing = {},
   batchId = null,
   priority = 0,
   dependsOn = [],
   base,
+  baseTree = null,
   owner,
   now = Date.now(),
   leaseMs = 30 * 60_000,
@@ -41,6 +45,7 @@ export function createWorkState({
   }
 
   const normalizedScopes = normalizeScopes(scopes);
+  const normalizedResources = normalizeResources(resources);
   const normalizedContract = normalizeContract(contract);
   const route = recommendRoute(routing, normalizedContract);
   if (route.lane === 'worker' && route.ready && !normalizedScopes.length) {
@@ -50,7 +55,7 @@ export function createWorkState({
   const dispatchToWorker = route.lane === 'worker' && route.ready;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     id,
     goal,
     hypothesis,
@@ -59,9 +64,11 @@ export function createWorkState({
     priority: Number(priority) || 0,
     dependsOn: normalizeDependsOn(dependsOn),
     scopes: normalizedScopes,
+    resources: normalizedResources,
     contract: normalizedContract,
     route,
     base,
+    baseTree,
     status: dispatchToWorker ? 'ready' : 'active',
     createdBy: owner,
     createdAt: iso(now),
@@ -98,6 +105,24 @@ function assertOwner(work, owner, now) {
   if (effective === 'active' && work.lease?.owner && work.lease.owner !== owner) {
     throw new Error(`${work.id} lease is held by ${work.lease.owner} until ${work.lease.expiresAt}`);
   }
+}
+
+export function recordEvidenceState(work, {
+  owner,
+  evidence,
+  now = Date.now(),
+}) {
+  assertMutable(work);
+  if (work.status === 'active') assertOwner(work, owner, now);
+  const record = normalizeEvidence({
+    ...evidence,
+    observedAt: evidence?.observedAt ?? iso(now),
+  });
+  return {
+    ...work,
+    updatedAt: iso(now),
+    evidence: [...(work.evidence ?? []), record],
+  };
 }
 
 export function awaitWorkState(work, {
@@ -175,14 +200,14 @@ export function resumeWorkState(work, {
     ? (result === 'success' ? work.continuation?.success : result === 'failure' ? work.continuation?.failure : null)
     : work.selectedContinuation;
 
-  const nextEvidence = [...(work.evidence ?? [])];
-  if (work.status === 'awaiting') {
-    nextEvidence.push({
-      event: work.awaiting?.event ?? null,
-      result,
-      observation: evidence,
-      observedAt: iso(now),
-    });
+  let nextEvidence = [...(work.evidence ?? [])];
+  if (work.status === 'awaiting' && evidence) {
+    nextEvidence.push(normalizeEvidence({
+      ...evidence,
+      event: evidence.event ?? work.awaiting?.event ?? null,
+      result: evidence.result ?? result,
+      observedAt: evidence.observedAt ?? iso(now),
+    }));
   }
 
   return {
@@ -204,6 +229,7 @@ export function finishWorkState(work, {
   owner,
   decision = 'accepted',
   summary = null,
+  subject = null,
   now = Date.now(),
 }) {
   assertMutable(work);
@@ -221,6 +247,7 @@ export function finishWorkState(work, {
     decision: {
       outcome: decision,
       summary,
+      subject,
       at: iso(now),
     },
   };
@@ -236,19 +263,27 @@ export function compactWorkOverview(states, now = Date.now()) {
     priority: work.priority ?? 0,
     dependsOn: normalizeDependsOn(work.dependsOn ?? []),
     scopes: normalizeScopes(work.scopes ?? []),
+    resources: normalizeResources(work.resources ?? []),
     contract: normalizeContract(work.contract ?? {}),
     route: work.route ?? recommendRoute({}, work.contract ?? {}),
+    base: work.base,
+    baseTree: work.baseTree ?? null,
     createdAt: work.createdAt,
     owner: work.lease?.owner ?? null,
     leaseExpiresAt: work.lease?.expiresAt ?? null,
     awaiting: work.awaiting?.event ?? null,
     continuation: work.selectedContinuation ?? null,
     escalation: work.escalation?.reason ?? null,
+    evidenceCount: (work.evidence ?? []).length,
+    decision: work.decision ?? null,
     updatedAt: work.updatedAt,
   }));
 
   const dispatch = buildWorkerQueue(rows);
-  const conflicts = workConflicts(rows);
+  const conflicts = [
+    ...workConflicts(rows),
+    ...workResourceConflicts(rows),
+  ];
 
   return {
     workerReady: dispatch.workerReady,

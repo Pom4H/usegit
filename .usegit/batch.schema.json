@@ -20,6 +20,22 @@
           "goal": { "type": "string", "minLength": 1 },
           "hypothesis": { "type": "string", "minLength": 1 },
           "scopes": { "type": "array", "items": { "type": "string" } },
+          "resources": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "required": ["name", "access"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "access": { "enum": ["read", "write"] }
+                  }
+                }
+              ]
+            }
+          },
           "priority": { "type": "number" },
           "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
         },

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import { buildReport } from './report.mjs';
+import { doctorRepository } from './doctor.mjs';
 import { history, validationErrors } from './metadata.mjs';
 import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
@@ -15,6 +16,7 @@ import {
   createWorkBatch,
   escalateWork,
   finishWork,
+  recordWorkEvidence,
   resumeWork,
   startWork,
   workStatus,
@@ -49,6 +51,18 @@ function parseArgs(values) {
   return args;
 }
 
+function csv(value) {
+  if (!value) return [];
+  return String(value).split(',').map((x) => x.trim()).filter(Boolean);
+}
+
+function resourcesFromArgs(args) {
+  return [
+    ...csv(args.resourceRead).map((name) => ({ name, access: 'read' })),
+    ...csv(args.resourceWrite).map((name) => ({ name, access: 'write' })),
+  ];
+}
+
 function routingFromArgs(args) {
   return {
     lane: args.lane ?? 'auto',
@@ -77,12 +91,13 @@ function workCommand(action, values) {
       goal: args.goal,
       hypothesis: args.hypothesis,
       experiment: args.experiment ?? null,
-      scopes: args.scope ? String(args.scope).split(',').map((x) => x.trim()).filter(Boolean) : [],
+      scopes: csv(args.scope),
+      resources: resourcesFromArgs(args),
       contract: contractFromArgs(args),
       routing: routingFromArgs(args),
       batchId: args.batch ?? null,
       priority: args.priority ?? 0,
-      dependsOn: args.dependsOn ? String(args.dependsOn).split(',').map((x) => x.trim()).filter(Boolean) : [],
+      dependsOn: csv(args.dependsOn),
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
@@ -125,11 +140,27 @@ function workCommand(action, values) {
       retries: Number(args.retries ?? 8),
     });
   }
+  if (action === 'evidence') {
+    if (!id) throw new Error('evidence requires WORK id');
+    return recordWorkEvidence(id, {
+      kind: args.kind ?? 'asserted',
+      result: args.result ?? null,
+      observation: args.observation ?? args.evidence ?? null,
+      source: args.source ?? null,
+      environment: args.environment ?? null,
+      event: args.event ?? null,
+      owner: args.owner,
+      remote: args.remote ?? 'origin',
+    });
+  }
   if (action === 'resume') {
     if (!id) throw new Error('resume requires WORK id');
     return resumeWork(id, {
       result: args.result ?? null,
       evidence: args.evidence ?? null,
+      evidenceKind: args.evidenceKind ?? 'asserted',
+      evidenceSource: args.evidenceSource ?? null,
+      evidenceEnvironment: args.evidenceEnvironment ?? null,
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
@@ -160,6 +191,14 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'doctor') {
+    const args = parseArgs(process.argv.slice(3));
+    const diagnosis = doctorRepository({
+      repair: Boolean(args.repair),
+      remote: args.remote ?? 'origin',
+    });
+    print(diagnosis);
+    if (!diagnosis.healthy) process.exitCode = 1;
   } else if (command === 'batch') {
     const args = parseArgs(process.argv.slice(3));
     const file = args._[0] ?? '.usegit/batch.json';
@@ -196,7 +235,7 @@ try {
     print(decideIntegration(plan));
   } else if (command === 'work') {
     print(workCommand(process.argv[3] ?? 'status', process.argv.slice(4)));
-  } else if (['start', 'status', 'await', 'escalate', 'claim', 'claim-next', 'resume', 'finish'].includes(command)) {
+  } else if (['start', 'status', 'await', 'escalate', 'claim', 'claim-next', 'evidence', 'resume', 'finish'].includes(command)) {
     print(workCommand(command, process.argv.slice(3)));
   } else {
     console.error(`Unknown command: ${command}`);

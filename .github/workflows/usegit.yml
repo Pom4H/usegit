@@ -22,11 +22,14 @@ jobs:
           node-version: 22
       - run: npm test
       - run: npm run validate
+      - run: node src/cli.mjs doctor --repair > usegit-doctor.json
       - run: npm run report > usegit-report.json
       - uses: actions/upload-artifact@v4
         with:
           name: usegit-report
-          path: usegit-report.json
+          path: |
+            usegit-report.json
+            usegit-doctor.json
 
   durable-work-remote:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
@@ -53,7 +56,7 @@ jobs:
         env:
           USEGIT_AGENT_ID: ci-agent-b
         run: |
-          node src/cli.mjs resume "$WORK_ID"             --result success             --evidence "remote ref survived local deletion"
+          node src/cli.mjs resume "$WORK_ID"             --result success             --evidence "remote ref survived local deletion"             --evidence-kind observed             --evidence-source "github-actions:$GITHUB_RUN_ID"
           git show "refs/usegit/work/$WORK_ID:work.json" | grep '"owner": "ci-agent-b"'
           node src/cli.mjs finish "$WORK_ID"             --decision accepted             --summary "remote durable handoff validated"
           git update-ref -d "refs/usegit/work/$WORK_ID"

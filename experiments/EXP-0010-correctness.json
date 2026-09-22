@@ -1,0 +1,21 @@
+{
+  "id": "EXP-0010",
+  "question": "Can semantic resources, exact evidence provenance and reconciliation make concurrent durable work fail safely under drift and partial failure?",
+  "hypothesis": "Read/write semantic resources plus tree-bound trusted evidence and a non-destructive doctor will detect hidden concurrency conflicts, stale evidence and inconsistent WORK state before integration.",
+  "status": "running",
+  "conditions": {
+    "semanticResources": "hierarchical read/write claims",
+    "trustedEvidence": ["observed", "attested"],
+    "acceptance": "trusted evidence must match the exact decision tree",
+    "doctor": "read-only by default; repair only performs safe synchronization"
+  },
+  "metrics": [
+    "hidden_conflict_detection_rate",
+    "stale_evidence_rejection_rate",
+    "doctor_detection_rate",
+    "false_positive_rate",
+    "unsafe_auto_repair_count"
+  ],
+  "evidence": [],
+  "decision": null
+}

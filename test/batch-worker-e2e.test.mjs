@@ -43,6 +43,7 @@ test('control batches work and stateless workers claim compatible tasks without 
         goal: 'A',
         hypothesis: 'A',
         scopes: ['src/a/**'],
+        resources: [{ name: 'system.a', access: 'write' }],
         success: 'A passes',
         priority: 30,
       },
@@ -51,6 +52,7 @@ test('control batches work and stateless workers claim compatible tasks without 
         goal: 'B',
         hypothesis: 'B',
         scopes: ['src/a/file.ts'],
+        resources: [{ name: 'system.a', access: 'read' }],
         success: 'B passes',
         priority: 20,
       },
@@ -59,6 +61,7 @@ test('control batches work and stateless workers claim compatible tasks without 
         goal: 'C',
         hypothesis: 'C',
         scopes: ['src/c/**'],
+        resources: [{ name: 'system.c', access: 'write' }],
         success: 'C passes',
         priority: 10,
       },
@@ -83,6 +86,13 @@ test('control batches work and stateless workers claim compatible tasks without 
   assert.equal(none.claimed, null);
   assert.equal(none.queueBlocked[0].id, 'WORK-B');
 
+  run([
+    'evidence', 'WORK-A',
+    '--kind', 'observed',
+    '--source', 'test:worker-a',
+    '--result', 'success',
+    '--observation', 'A deterministic check passed',
+  ], cwd, 'instant-1');
   run(['finish', 'WORK-A', '--decision', 'accepted'], cwd, 'instant-1');
 
   const third = run(['claim-next'], cwd, 'instant-3');

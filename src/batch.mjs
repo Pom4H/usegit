@@ -35,6 +35,7 @@ export function normalizeBatchPlan(plan) {
     const normalizedScopes = Array.isArray(scopes)
       ? scopes
       : String(scopes).split(',').map((x) => x.trim()).filter(Boolean);
+    const resources = item.resources ?? defaults.resources ?? [];
 
     return {
       id: item.id,
@@ -42,6 +43,7 @@ export function normalizeBatchPlan(plan) {
       hypothesis: item.hypothesis,
       experiment: item.experiment ?? plan.experiment ?? defaults.experiment ?? null,
       scopes: normalizedScopes,
+      resources: array(resources, `work[${index}].resources`),
       priority: Number(item.priority ?? defaults.priority ?? 0),
       dependsOn: array(item.dependsOn ?? [], `work[${index}].dependsOn`),
       contract: {

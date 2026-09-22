@@ -1,11 +1,16 @@
+import { resourcesConflict } from './resource.mjs';
 import { scopesOverlap } from './scope.mjs';
 
 const RESERVED = new Set(['active', 'awaiting', 'escalated', 'stale']);
 const FAILED = new Set(['rejected', 'falsified']);
 
-function overlaps(left = [], right = []) {
+function pathOverlaps(left = [], right = []) {
   if (!left.length || !right.length) return false;
   return left.some((a) => right.some((b) => scopesOverlap(a, b)));
+}
+
+function semanticOverlaps(left = [], right = []) {
+  return resourcesConflict(left, right);
 }
 
 function byPriority(a, b) {
@@ -14,6 +19,22 @@ function byPriority(a, b) {
   const created = String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? ''));
   if (created) return created;
   return a.id.localeCompare(b.id);
+}
+
+function conflictReasons(candidate, other, prefix) {
+  const reasons = [];
+  if (pathOverlaps(candidate.scopes ?? [], other.scopes ?? [])) {
+    reasons.push({ kind: `${prefix}-scope-overlap`, work: [other.id] });
+  }
+  const semantic = semanticOverlaps(candidate.resources ?? [], other.resources ?? []);
+  if (semantic.length) {
+    reasons.push({
+      kind: `${prefix}-resource-overlap`,
+      work: [other.id],
+      overlaps: semantic,
+    });
+  }
+  return reasons;
 }
 
 export function buildWorkerQueue(rows) {
@@ -28,9 +49,8 @@ export function buildWorkerQueue(rows) {
 
   for (const candidate of candidates) {
     const reasons = [];
-    const scopes = candidate.scopes ?? [];
 
-    if (!scopes.length) {
+    if (!(candidate.scopes ?? []).length) {
       reasons.push({ kind: 'missing-scope' });
     }
 
@@ -45,18 +65,13 @@ export function buildWorkerQueue(rows) {
       }
     }
 
-    const reservedBy = reservations
-      .filter((row) => row.id !== candidate.id && overlaps(scopes, row.scopes ?? []))
-      .map((row) => row.id);
-    if (reservedBy.length) {
-      reasons.push({ kind: 'reserved-scope-overlap', work: reservedBy });
+    for (const reserved of reservations) {
+      if (reserved.id === candidate.id) continue;
+      reasons.push(...conflictReasons(candidate, reserved, 'reserved'));
     }
 
-    const selectedOverlap = workerReady
-      .filter((row) => overlaps(scopes, row.scopes ?? []))
-      .map((row) => row.id);
-    if (selectedOverlap.length) {
-      reasons.push({ kind: 'ready-scope-overlap', work: selectedOverlap });
+    for (const selected of workerReady) {
+      reasons.push(...conflictReasons(candidate, selected, 'ready'));
     }
 
     if (reasons.length) {
