@@ -1,0 +1,36 @@
+{
+  "name": "usegit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "usegit": "./src/cli.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "init": "node src/cli.mjs init",
+    "validate": "node src/cli.mjs validate",
+    "doctor": "node src/cli.mjs doctor",
+    "report": "node src/cli.mjs report",
+    "next": "node src/cli.mjs next",
+    "context": "node src/cli.mjs context",
+    "batch": "node src/cli.mjs batch",
+    "route": "node src/cli.mjs route",
+    "boundary": "node src/cli.mjs boundary",
+    "integration": "node src/cli.mjs integration",
+    "work": "node src/cli.mjs work",
+    "start": "node src/cli.mjs start",
+    "status": "node src/cli.mjs status",
+    "await": "node src/cli.mjs await",
+    "escalate": "node src/cli.mjs escalate",
+    "claim": "node src/cli.mjs claim",
+    "claim-next": "node src/cli.mjs claim-next",
+    "evidence": "node src/cli.mjs evidence",
+    "resume": "node src/cli.mjs resume",
+    "finish": "node src/cli.mjs finish",
+    "view": "node src/cli.mjs view"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

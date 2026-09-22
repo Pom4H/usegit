@@ -1,0 +1,68 @@
+{
+  "id": "EXP-0011",
+  "question": "Can the reusable usegit workflow run on repositories that require their own self-hosted runner instead of GitHub-hosted ubuntu-latest?",
+  "hypothesis": "Making the reusable runner label an explicit workflow input and using bash for run steps will preserve the same causal validation/evidence behavior on both ubuntu-latest and Windows self-hosted runners.",
+  "status": "accepted",
+  "conditions": {
+    "discoveryRepository": "Pom4H/game-engine",
+    "failedRunId": 35699590334,
+    "observedRunnerId": 0,
+    "requiredRunner": "self-hosted",
+    "targetOS": "Windows",
+    "shell": "explicit runner_shell input",
+    "executionLanes": [
+      "posix-default-shell",
+      "windows-cmd"
+    ]
+  },
+  "metrics": [
+    "reusable_workflow_start_success",
+    "causal_validation_success",
+    "report_generation_success",
+    "git_note_materialized"
+  ],
+  "evidence": [
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35699590334,
+      "observation": "Reusable workflow failed before its first step because ubuntu-latest was unavailable; job reported runner_id 0."
+    },
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35699807888,
+      "observation": "The self-hosted Windows runner started successfully, then failed at Configure evidence transport because bash is not installed as an Actions shell."
+    },
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35700259542,
+      "observation": "Runner-default PowerShell was selected on Windows but local execution policy blocks generated .ps1 scripts; the target repository already uses cmd successfully."
+    },
+    {
+      "kind": "workflow-compile-failure",
+      "repository": "Pom4H/game-engine",
+      "runId": 35700520129,
+      "observation": "Dynamic shell expression prevented the reusable caller from constructing any job; shell selection must be static workflow topology."
+    },
+    {
+      "kind": "cross-project-acceptance",
+      "repository": "Pom4H/game-engine",
+      "commit": "5b2d2016ee327e45a7acf38cff7a780ec515be51",
+      "runId": 35700671796,
+      "runner": "NUCBOX_M6ULTRA",
+      "runnerOs": "Windows",
+      "runnerArch": "X64",
+      "lane": "windows-cmd",
+      "validation": "success",
+      "report": "success",
+      "gitNoteMaterialized": true,
+      "notesRef": "refs/notes/usegit"
+    }
+  ],
+  "decision": {
+    "outcome": "accepted",
+    "reason": "The typed Windows/cmd lane completed causal validation and reporting on game-engine's existing self-hosted Windows runner and materialized durable evidence in refs/notes/usegit. The default POSIX lane remains covered by usegit's own successful CI."
+  }
+}

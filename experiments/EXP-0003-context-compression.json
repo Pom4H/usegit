@@ -1,0 +1,35 @@
+{
+  "id": "EXP-0003",
+  "question": "Can causal Git metadata reduce the context an agent must read without losing decision-critical history?",
+  "hypothesis": "A compact causal packet can preserve all critical change fields while using at most 20% of the bytes of recent raw patch history.",
+  "status": "accepted",
+  "conditions": {
+    "historyWindow": 20,
+    "causalCommitLimit": 12
+  },
+  "metrics": [
+    "critical_field_recall",
+    "causal_context_bytes",
+    "raw_patch_history_bytes",
+    "context_to_raw_byte_ratio"
+  ],
+  "successCriteria": {
+    "criticalFieldRecall": 1,
+    "contextToRawByteRatioMax": 0.2
+  },
+  "evidence": [
+    {
+      "source": "github-actions",
+      "runId": 35692658895,
+      "commit": "89e50bdb56933f83f25483ada245bb32bd55819a",
+      "criticalFieldRecall": 1,
+      "causalContextBytes": 2272,
+      "rawPatchHistoryBytes": 44485,
+      "contextToRawByteRatio": 0.0511
+    }
+  ],
+  "decision": {
+    "outcome": "accepted",
+    "reason": "Critical causal field recall was 1.0 and the causal packet used 5.11% of the bytes of the recent raw patch history, below the 20% threshold."
+  }
+}

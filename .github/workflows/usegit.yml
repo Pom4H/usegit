@@ -1,0 +1,176 @@
+name: usegit
+
+on:
+  push:
+    branches:
+      - main
+      - "experiment/**"
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run validate
+      - run: node src/cli.mjs doctor --repair > usegit-doctor.json
+      - run: npm run report > usegit-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usegit-report
+          path: |
+            usegit-report.json
+            usegit-doctor.json
+
+  durable-work-remote:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      WORK_ID: WORK-CI-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Start and suspend work
+        env:
+          USEGIT_AGENT_ID: ci-agent-a
+        run: |
+          node src/cli.mjs start             --id "$WORK_ID"             --goal "prove remote durable work handoff"             --hypothesis "custom Git refs survive process and local-ref loss"
+          node src/cli.mjs await "$WORK_ID"             --event ci:remote-handoff             --on-success "finish remote handoff"             --on-failure "inspect remote handoff"
+          git show "refs/usegit/work/$WORK_ID:work.json" | grep '"status": "awaiting"'
+          git update-ref -d "refs/usegit/work/$WORK_ID"
+      - name: Resume from remote ref as another agent
+        env:
+          USEGIT_AGENT_ID: ci-agent-b
+        run: |
+          node src/cli.mjs resume "$WORK_ID"             --result success             --evidence "remote ref survived local deletion"             --evidence-kind observed             --evidence-source "github-actions:$GITHUB_RUN_ID"
+          git show "refs/usegit/work/$WORK_ID:work.json" | grep '"owner": "ci-agent-b"'
+          node src/cli.mjs finish "$WORK_ID"             --decision accepted             --summary "remote durable handoff validated"
+          git update-ref -d "refs/usegit/work/$WORK_ID"
+          node src/cli.mjs status > /tmp/work-status.json
+          node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('/tmp/work-status.json','utf8')); if (!x.finished.some(w => w.id === process.env.WORK_ID)) process.exit(1)"
+      - name: Cleanup remote test ref
+        if: always()
+        run: |
+          git push origin ":refs/usegit/work/$WORK_ID" || true
+          git update-ref -d "refs/usegit/work/$WORK_ID" || true
+
+
+  blind-ai-handoff-arm:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' && contains(github.event.head_commit.message, 'Usegit-Arm-Blind-Handoff') }}
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Arm durable blind handoff
+        env:
+          USEGIT_AGENT_ID: blind-source-agent
+        run: |
+          node src/cli.mjs start \
+            --id WORK-BLIND-0001 \
+            --goal "prove a fresh AI can continue usegit development from repository state only" \
+            --hypothesis "a fresh agent can discover awaiting work, verify its external evidence, choose the encoded continuation, and act without prior chat context" \
+            --experiment EXP-0006
+          node src/cli.mjs await WORK-BLIND-0001 \
+            --event "github-actions:run-35695189535" \
+            --on-success "Continue EXP-0006 by adding declarative WORK scopes and compact overlap/conflict reporting for concurrent agents. Add tests, keep the current PR count unchanged, and preserve causal metadata." \
+            --on-failure "Investigate why remote durable-work handoff validation failed before adding concurrency features."
+          git update-ref -d refs/usegit/work/WORK-BLIND-0001
+          git fetch origin refs/usegit/work/WORK-BLIND-0001:refs/usegit/work/WORK-BLIND-0001
+          git show refs/usegit/work/WORK-BLIND-0001:work.json | grep '"status": "awaiting"'
+
+  blind-replay-fixtures:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch anonymous histories
+        run: |
+          git fetch origin refs/heads/bench/granularity/a-v1:refs/heads/blind-a
+          git fetch origin refs/heads/bench/granularity/b-v1:refs/heads/blind-b
+          git fetch origin refs/heads/bench/granularity/c-v1:refs/heads/blind-c
+      - name: Verify identical final trees
+        run: |
+          expected="$(git rev-parse blind-a^{tree})"
+          test "$expected" = "$(git rev-parse blind-b^{tree})"
+          test "$expected" = "$(git rev-parse blind-c^{tree})"
+          test "$expected" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
+      - name: Build isolated replay fixtures
+        run: |
+          mkdir -p blind-replay
+          for alias in a b c; do
+            bare="/tmp/usegit-${alias}.git"
+            workspace="/tmp/usegit-${alias}"
+            check="/tmp/check-${alias}"
+
+            git init --bare "$bare"
+            git push "$bare" "refs/heads/blind-${alias}:refs/heads/main"
+            git -C "$bare" symbolic-ref HEAD refs/heads/main
+
+            git -C "$bare" bundle create "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.bundle" main
+            git -C "$bare" bundle verify "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.bundle"
+
+            git clone --quiet "$bare" "$workspace"
+            git -C "$workspace" remote remove origin
+            test "$(git -C "$workspace" branch --show-current)" = "main"
+            test -z "$(git -C "$workspace" remote)"
+            test "$(git -C "$workspace" rev-parse HEAD^{tree})" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
+
+            (cd "$workspace" && zip -qr "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.zip" .)
+
+            mkdir -p "$check"
+            unzip -q "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.zip" -d "$check"
+            test "$(git -C "$check" branch --show-current)" = "main"
+            test -z "$(git -C "$check" remote)"
+            test "$(git -C "$check" rev-parse HEAD^{tree})" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: granularity-blind-replay
+          path: |
+            blind-replay/*.bundle
+            blind-replay/*.zip
+
+  provenance:
+    if: ${{ always() && github.event_name == 'push' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch existing evidence notes
+        run: git fetch origin refs/notes/usegit:refs/notes/usegit || true
+      - name: Materialize CI evidence
+        env:
+          VALIDATION_RESULT: ${{ needs.validate.result }}
+        run: |
+          git config user.name "usegit[bot]"
+          git config user.email "usegit[bot]@users.noreply.github.com"
+          node src/note.mjs "$GITHUB_SHA" "$VALIDATION_RESULT"
+      - name: Push evidence DAG
+        run: git push origin refs/notes/usegit

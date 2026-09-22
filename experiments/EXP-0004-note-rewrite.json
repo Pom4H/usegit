@@ -1,0 +1,33 @@
+{
+  "id": "EXP-0004",
+  "question": "Can CI evidence attached as Git notes survive SHA rewrites without becoming disconnected from the conceptual change?",
+  "hypothesis": "Configuring Git notes rewrite support will copy usegit evidence to amended/rebased revisions while stable Change IDs preserve conceptual identity.",
+  "status": "accepted",
+  "conditions": {
+    "notesRef": "refs/notes/usegit",
+    "rewriteMode": "concatenate"
+  },
+  "metrics": [
+    "note_present_after_amend",
+    "old_note_preserved",
+    "stable_change_id_available"
+  ],
+  "successCriteria": {
+    "notePresentAfterAmend": true,
+    "oldNotePreserved": true
+  },
+  "evidence": [
+    {
+      "source": "github-actions",
+      "runId": 35692821201,
+      "commit": "20fa240b56938c26995230bbc8c13529f1e99c8d",
+      "notePresentAfterAmend": true,
+      "oldNotePreserved": true,
+      "validation": "test/note-rewrite.test.mjs passed"
+    }
+  ],
+  "decision": {
+    "outcome": "accepted",
+    "reason": "The isolated amend test passed in CI: refs/notes/usegit evidence was copied to the rewritten SHA and remained attached to the old SHA."
+  }
+}

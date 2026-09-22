@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Pom4H/usegit/.usegit/work.schema.json",
+  "title": "usegit durable work state",
+  "type": "object",
+  "required": ["schemaVersion", "id", "goal", "hypothesis", "base", "status", "createdAt", "updatedAt", "evidence"],
+  "properties": {
+    "schemaVersion": { "enum": [1, 2] },
+    "id": { "type": "string", "pattern": "^WORK-[A-Za-z0-9._-]+$" },
+    "goal": { "type": "string", "minLength": 1 },
+    "hypothesis": { "type": "string", "minLength": 1 },
+    "experiment": { "type": ["string", "null"] },
+    "batchId": { "type": ["string", "null"] },
+    "priority": { "type": "number" },
+    "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "scopes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "access"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "access": { "enum": ["read", "write"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "contract": {
+      "type": "object",
+      "properties": {
+        "success": { "type": ["string", "null"] },
+        "evidence": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "route": { "type": "object" },
+    "base": { "type": "string", "minLength": 1 },
+    "baseTree": { "type": ["string", "null"] },
+    "status": { "enum": ["ready", "active", "awaiting", "escalated", "accepted", "rejected", "falsified"] },
+    "createdBy": { "type": ["string", "null"] },
+    "lease": { "type": ["object", "null"] },
+    "awaiting": { "type": ["object", "null"] },
+    "continuation": { "type": ["object", "null"] },
+    "selectedContinuation": { "type": ["string", "null"] },
+    "escalation": { "type": ["object", "null"] },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "enum": ["asserted", "observed", "attested"] },
+          "result": {},
+          "source": { "type": ["string", "null"] },
+          "subject": { "type": "object" },
+          "environmentHash": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "decision": { "type": ["object", "null"] }
+  },
+  "additionalProperties": true
+}
