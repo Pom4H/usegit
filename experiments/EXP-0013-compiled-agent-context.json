@@ -1,0 +1,82 @@
+{
+  "id": "EXP-0013",
+  "question": "Can a dynamically compiled agent context reduce fresh-agent startup cost without turning AGENTS.md into mutable source-of-truth state?",
+  "hypothesis": "A deterministic session-local AGENTS.md compiled from Git commits, WORK refs and experiment records will preserve decision-critical startup state while remaining disposable, untracked and smaller than raw reconstruction context.",
+  "status": "running",
+  "conditions": {
+    "staticProtocol": "tracked root AGENTS.md",
+    "compiledRuntime": "stdout or .git/usegit/AGENTS.md",
+    "sourceOfTruth": [
+      "normal commits",
+      "refs/usegit/work/*",
+      "refs/notes/usegit",
+      "experiments/"
+    ],
+    "trackedRuntimeProjection": false,
+    "rationale": "A tracked runtime projection would be self-referential: committing HEAD-dependent context changes HEAD and immediately invalidates the snapshot.",
+    "benchmark": {
+      "rawBaseline": "exact `usegit context` stdout bytes",
+      "compiledVariant": "exact `usegit agents` compiled bytes",
+      "recallDomain": "head, live WORK ownership/lease/dependencies/scopes/resources/contracts, running experiments, recent causal changes and next decision",
+      "ciArtifact": "usegit-agent-context.json"
+    }
+  },
+  "variants": [
+    {
+      "id": "A",
+      "startup": "static AGENTS.md + raw Git reconstruction"
+    },
+    {
+      "id": "B",
+      "startup": "static AGENTS.md + usegit context"
+    },
+    {
+      "id": "C",
+      "startup": "static AGENTS.md + compiled usegit agents context"
+    }
+  ],
+  "metrics": [
+    "decision_critical_field_recall",
+    "startup_context_bytes",
+    "compiled_to_raw_ratio",
+    "startup_tool_calls",
+    "duplicate_work_rate",
+    "stale_evidence_mistakes",
+    "next_action_accuracy"
+  ],
+  "successCriteria": {
+    "decisionCriticalFieldRecall": 1,
+    "trackedWorktreeMutation": false,
+    "deterministicRegeneration": true
+  },
+  "evidence": [
+    {
+      "kind": "mechanistic-ci",
+      "trust": "observed",
+      "source": "github-actions:35733142191",
+      "commit": "28780efd01fee0071d42774f487309502f386da9",
+      "result": "success",
+      "metrics": {
+        "decisionCriticalFieldRecall": 1,
+        "compiledContextBytes": 5953,
+        "rawContextBytes": 7983,
+        "compiledToRawRatio": 0.7457,
+        "deterministicRegeneration": true,
+        "runtimeCachePath": ".git/usegit/AGENTS.md",
+        "trackedRuntimeProjection": false
+      },
+      "protocolChecks": {
+        "validate": "success",
+        "doctor": "success",
+        "provenance": "success",
+        "protocolChaos": "4/4 success"
+      },
+      "conclusion": "Mechanistic gates passed on the exact implementation tree. Behavioral A/B/C startup accuracy remains unmeasured, so the experiment stays running."
+    }
+  ],
+  "decision": null,
+  "notes": [
+    "The first mechanistic measurement reduced the already-compact `usegit context` baseline by 25.43% while preserving every declared decision-critical token.",
+    "This is not enough to accept EXP-0013: fresh-agent behavioral runs must still measure next-action accuracy, duplicate-work rate and stale-evidence mistakes."
+  ]
+}

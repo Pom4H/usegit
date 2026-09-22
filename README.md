@@ -12,11 +12,13 @@ npx --yes github:Pom4H/usegit#main init
 
 That adds the small amount of repository state and agent instructions usegit needs. Existing history is left untouched.
 
-After that, a fresh agent starts with:
+After that, a fresh agent starts with a compiled session context:
 
 ```bash
-npx --yes github:Pom4H/usegit#main context
+npx --yes github:Pom4H/usegit#main agents
 ```
+
+For agent surfaces that can preload a file, `usegit agents --write` materializes the same disposable projection at `.git/usegit/AGENTS.md`. It is never committed or treated as source of truth.
 
 ## The idea
 
@@ -128,6 +130,7 @@ There is no separate source-of-truth database.
 ## Useful commands
 
 ```bash
+usegit agents
 usegit context
 usegit start
 usegit status
