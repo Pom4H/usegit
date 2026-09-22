@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { commitStats } from './git.mjs';
+import { commitStats, tryGit } from './git.mjs';
 import { history, validationErrors } from './metadata.mjs';
 import { findRepeatedFalsifiedHypotheses } from './negative.mjs';
+import { compactCausalHistory, criticalFieldRecall } from './context.mjs';
 
 function median(values) {
   if (!values.length) return 0;
@@ -44,6 +45,12 @@ export function buildReport() {
   const experiments = loadExperiments();
   const repeated = findRepeatedFalsifiedHypotheses(structured);
 
+  const packet = compactCausalHistory(commits);
+  const rawPatch = tryGit(['log', '-20', '-p']);
+  const rawBytes = Buffer.byteLength(rawPatch);
+  const causalBytes = Buffer.byteLength(JSON.stringify(packet));
+  const ratio = rawBytes ? causalBytes / rawBytes : 0;
+
   return {
     schemaVersion: 1,
     generatedFrom: commits[0]?.sha ?? null,
@@ -52,6 +59,12 @@ export function buildReport() {
     unresolvedExperiments: experiments.filter((x) => x.status === 'running').map((x) => x.id),
     repeatedFalsifiedHypotheses: repeated,
     repeatedFalsifiedHypothesisCount: repeated.length,
+    contextCompression: {
+      criticalFieldRecall: Number(criticalFieldRecall(commits, packet).toFixed(4)),
+      causalContextBytes: causalBytes,
+      rawPatchHistoryBytes: rawBytes,
+      contextToRawByteRatio: Number(ratio.toFixed(4)),
+    },
     strategies,
     validationErrors: validationErrors(commits),
   };
