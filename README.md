@@ -97,6 +97,49 @@ Finish only after evidence supports a decision:
 usegit finish WORK-1234ABCD --decision accepted --summary "quality improved within GPU budget"
 ```
 
+## Control plane and worker plane
+
+A control invocation decides **what is worth testing**. Cheap workers execute only bounded WORK whose contract is explicit enough to be checked mechanically.
+
+A WORK is automatically routed to the worker queue only when all of these are true:
+
+- uncertainty is `low`;
+- the oracle is `objective`;
+- `--success` defines the acceptance condition;
+- `--evidence-plan` defines how the condition will be observed;
+- no architecture decision or evidence conflict is declared;
+- fewer than three attempts have already failed.
+
+Example from a control thread:
+
+```bash
+usegit start \
+  --goal "reduce renderer frame cost" \
+  --hypothesis "cache probe visibility" \
+  --scope "src/render/**,test/render/**" \
+  --success "p95 frame time improves by >= 0.5 ms with no quality regression" \
+  --evidence-plan "deterministic GPU CI benchmark + reference metric" \
+  --uncertainty low \
+  --oracle objective
+```
+
+Because the contract is execution-ready, the WORK is persisted as `ready` **without a lease**. A stateless worker can then run:
+
+```bash
+usegit context
+usegit claim WORK-...
+```
+
+`context.work.workerReady` is the cheap execution queue. `context.work.controlQueue` contains ambiguous or escalated decisions for a deeper control thread.
+
+If a worker encounters something outside its contract, it does not improvise architecture:
+
+```bash
+usegit escalate WORK-... --reason "evidence contradicts the architecture assumption"
+```
+
+That releases the worker lease and moves the WORK to deep control. `usegit route` can preview the routing decision before a WORK is created.
+
 ## Pull requests are not work items
 
 A task, agent, branch or experiment does not automatically deserve a pull request. Work remains in the causal graph until it has accepted evidence and can be grouped into a compatible integration set.

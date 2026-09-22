@@ -11,8 +11,30 @@
     "hypothesis": { "type": "string", "minLength": 1 },
     "experiment": { "type": ["string", "null"] },
     "scopes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "contract": {
+      "type": "object",
+      "properties": {
+        "success": { "type": ["string", "null"] },
+        "evidence": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "route": {
+      "type": "object",
+      "required": ["lane", "reasoning", "ready", "source", "blockers", "signals"],
+      "properties": {
+        "lane": { "enum": ["worker", "control"] },
+        "reasoning": { "enum": ["instant", "deep"] },
+        "ready": { "type": "boolean" },
+        "source": { "enum": ["policy", "explicit", "escalation"] },
+        "blockers": { "type": "array", "items": { "type": "string" } },
+        "signals": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
     "base": { "type": "string", "minLength": 1 },
-    "status": { "enum": ["active", "awaiting", "accepted", "rejected", "falsified"] },
+    "status": { "enum": ["ready", "active", "awaiting", "escalated", "accepted", "rejected", "falsified"] },
+    "createdBy": { "type": ["string", "null"] },
     "lease": {
       "anyOf": [
         { "type": "null" },
@@ -30,6 +52,7 @@
     "awaiting": { "type": ["object", "null"] },
     "continuation": { "type": ["object", "null"] },
     "selectedContinuation": { "type": ["string", "null"] },
+    "escalation": { "type": ["object", "null"] },
     "evidence": { "type": "array" },
     "decision": { "type": ["object", "null"] }
   },

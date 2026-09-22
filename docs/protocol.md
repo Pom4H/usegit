@@ -45,6 +45,42 @@ An active lease prevents another agent from taking the same next decision. Expir
 
 The first command in a fresh invocation is `usegit context`. It fetches the work namespace and returns a compact view of active, awaiting, stale and completed work together with causal history.
 
+## Control and worker routing
+
+The work graph is also a reasoning scheduler.
+
+```text
+goal / product judgement
+        |
+        v
+control plane
+  hypothesis + WORK contract
+        |
+        +-- ambiguous ----------------------> control queue
+        |
+        +-- low uncertainty
+            objective oracle
+            explicit success/evidence
+                    |
+                    v
+              ready WORK
+                    |
+                 claim
+                    v
+              cheap worker
+              /         \
+         evidence       unexpected ambiguity
+            |                    |
+          finish              escalate
+                                 |
+                                 v
+                            control queue
+```
+
+Routing is based on properties of the work, not a hard-coded model name. The current policy labels bounded execution as `instant` and ambiguous reasoning as `deep`. A worker-ready task is created without a lease so control does not own or serialize it; the worker acquires ownership with `claim`.
+
+Automatic worker routing is intentionally conservative. Missing success/evidence contracts, medium or high uncertainty, partial/no oracle, architecture decisions, conflicting evidence, or three failed attempts keep the work in control. An explicit worker override remains visible as not-ready when blockers exist.
+
 ## Negative knowledge
 
 Rejected and falsified hypotheses are first-class results. Deleting failed attempts destroys information and causes future agents to revisit the same dead ends.

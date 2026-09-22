@@ -1,3 +1,4 @@
+import { escalateRoute, recommendRoute } from './routing.mjs';
 import { normalizeScopes, workConflicts } from './scope.mjs';
 
 const TERMINAL = new Set(['accepted', 'rejected', 'falsified']);
@@ -6,12 +7,21 @@ function iso(value) {
   return new Date(value).toISOString();
 }
 
+function normalizeContract(contract = {}) {
+  return {
+    success: contract?.success ?? null,
+    evidence: contract?.evidence ?? null,
+  };
+}
+
 export function createWorkState({
   id,
   goal,
   hypothesis,
   experiment = null,
   scopes = [],
+  contract = {},
+  routing = {},
   base,
   owner,
   now = Date.now(),
@@ -21,6 +31,10 @@ export function createWorkState({
     throw new Error('work requires id, goal, hypothesis, base and owner');
   }
 
+  const normalizedContract = normalizeContract(contract);
+  const route = recommendRoute(routing, normalizedContract);
+  const dispatchToWorker = route.lane === 'worker' && route.ready;
+
   return {
     schemaVersion: 1,
     id,
@@ -28,11 +42,14 @@ export function createWorkState({
     hypothesis,
     experiment,
     scopes: normalizeScopes(scopes),
+    contract: normalizedContract,
+    route,
     base,
-    status: 'active',
+    status: dispatchToWorker ? 'ready' : 'active',
+    createdBy: owner,
     createdAt: iso(now),
     updatedAt: iso(now),
-    lease: {
+    lease: dispatchToWorker ? null : {
       owner,
       acquiredAt: iso(now),
       expiresAt: iso(now + leaseMs),
@@ -40,6 +57,7 @@ export function createWorkState({
     awaiting: null,
     continuation: null,
     selectedContinuation: null,
+    escalation: null,
     evidence: [],
     decision: null,
   };
@@ -90,6 +108,30 @@ export function awaitWorkState(work, {
       failure: onFailure,
     },
     selectedContinuation: null,
+  };
+}
+
+export function escalateWorkState(work, {
+  owner,
+  reason,
+  now = Date.now(),
+}) {
+  assertMutable(work);
+  if (!reason) throw new Error('escalation requires a reason');
+  assertOwner(work, owner, now);
+
+  return {
+    ...work,
+    status: 'escalated',
+    updatedAt: iso(now),
+    lease: null,
+    awaiting: null,
+    route: escalateRoute(work.route, reason),
+    escalation: {
+      reason,
+      fromOwner: owner,
+      at: iso(now),
+    },
   };
 }
 
@@ -174,18 +216,29 @@ export function compactWorkOverview(states, now = Date.now()) {
     goal: work.goal,
     experiment: work.experiment,
     scopes: normalizeScopes(work.scopes ?? []),
+    contract: normalizeContract(work.contract ?? {}),
+    route: work.route ?? recommendRoute({}, work.contract ?? {}),
     owner: work.lease?.owner ?? null,
     leaseExpiresAt: work.lease?.expiresAt ?? null,
     awaiting: work.awaiting?.event ?? null,
     continuation: work.selectedContinuation ?? null,
+    escalation: work.escalation?.reason ?? null,
     updatedAt: work.updatedAt,
   }));
 
+  const conflicts = workConflicts(rows);
+
   return {
+    workerReady: rows.filter((x) => x.status === 'ready' && x.route?.lane === 'worker' && x.route?.ready),
+    controlQueue: rows.filter((x) =>
+      x.status === 'escalated' ||
+      (x.status === 'active' && (x.route?.lane === 'control' || !x.route?.ready))),
     active: rows.filter((x) => x.status === 'active'),
+    ready: rows.filter((x) => x.status === 'ready'),
     awaiting: rows.filter((x) => x.status === 'awaiting'),
+    escalated: rows.filter((x) => x.status === 'escalated'),
     stale: rows.filter((x) => x.status === 'stale'),
     finished: rows.filter((x) => TERMINAL.has(x.status)),
-    conflicts: workConflicts(rows),
+    conflicts,
   };
 }

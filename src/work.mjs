@@ -5,6 +5,7 @@ import {
   awaitWorkState,
   compactWorkOverview,
   createWorkState,
+  escalateWorkState,
   finishWorkState,
   resumeWorkState,
 } from './work-state.mjs';
@@ -119,6 +120,8 @@ export function startWork({
   hypothesis,
   experiment = null,
   scopes = [],
+  contract = {},
+  routing = {},
   owner = defaultOwner(),
   leaseMinutes = 30,
   remote = 'origin',
@@ -132,6 +135,8 @@ export function startWork({
     hypothesis,
     experiment,
     scopes,
+    contract,
+    routing,
     base: git(['rev-parse', 'HEAD']),
     owner,
     leaseMs: Number(leaseMinutes) * 60_000,
@@ -150,6 +155,16 @@ export function awaitWork(id, {
   syncWorkRefs(remote);
   const { state, commit } = current(id);
   return persist(awaitWorkState(state, { owner, event, onSuccess, onFailure }), commit, remote);
+}
+
+export function escalateWork(id, {
+  reason,
+  owner = defaultOwner(),
+  remote = 'origin',
+} = {}) {
+  syncWorkRefs(remote);
+  const { state, commit } = current(id);
+  return persist(escalateWorkState(state, { owner, reason }), commit, remote);
 }
 
 export function resumeWork(id, {

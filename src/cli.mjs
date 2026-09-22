@@ -7,7 +7,8 @@ import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
 import { decideIntegration } from './integration.mjs';
 import { initializeRepository } from './init.mjs';
-import { awaitWork, finishWork, resumeWork, startWork, workStatus } from './work.mjs';
+import { recommendRoute } from './routing.mjs';
+import { awaitWork, escalateWork, finishWork, resumeWork, startWork, workStatus } from './work.mjs';
 import { configureRepository } from './setup.mjs';
 
 const command = process.argv[2] ?? 'context';
@@ -38,6 +39,24 @@ function parseArgs(values) {
   return args;
 }
 
+function routingFromArgs(args) {
+  return {
+    lane: args.lane ?? 'auto',
+    uncertainty: args.uncertainty ?? 'medium',
+    oracle: args.oracle ?? 'partial',
+    architectureDecision: args.architectureDecision ?? false,
+    evidenceConflict: args.evidenceConflict ?? false,
+    failedAttempts: args.failedAttempts ?? 0,
+  };
+}
+
+function contractFromArgs(args) {
+  return {
+    success: args.success ?? null,
+    evidence: args.evidencePlan ?? null,
+  };
+}
+
 function workCommand(action, values) {
   const args = parseArgs(values);
   const id = args._[0] ?? args.id;
@@ -49,6 +68,8 @@ function workCommand(action, values) {
       hypothesis: args.hypothesis,
       experiment: args.experiment ?? null,
       scopes: args.scope ? String(args.scope).split(',').map((x) => x.trim()).filter(Boolean) : [],
+      contract: contractFromArgs(args),
+      routing: routingFromArgs(args),
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
@@ -64,6 +85,22 @@ function workCommand(action, values) {
       owner: args.owner,
       onSuccess: args.onSuccess ?? null,
       onFailure: args.onFailure ?? null,
+      remote: args.remote ?? 'origin',
+    });
+  }
+  if (action === 'escalate') {
+    if (!id) throw new Error('escalate requires WORK id');
+    return escalateWork(id, {
+      reason: args.reason,
+      owner: args.owner,
+      remote: args.remote ?? 'origin',
+    });
+  }
+  if (action === 'claim') {
+    if (!id) throw new Error('claim requires WORK id');
+    return resumeWork(id, {
+      owner: args.owner,
+      leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
     });
   }
@@ -102,6 +139,9 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'route') {
+    const args = parseArgs(process.argv.slice(3));
+    print(recommendRoute(routingFromArgs(args), contractFromArgs(args)));
   } else if (command === 'report') {
     print(buildReport());
   } else if (command === 'next') {
@@ -126,7 +166,7 @@ try {
     print(decideIntegration(plan));
   } else if (command === 'work') {
     print(workCommand(process.argv[3] ?? 'status', process.argv.slice(4)));
-  } else if (['start', 'status', 'await', 'resume', 'finish'].includes(command)) {
+  } else if (['start', 'status', 'await', 'escalate', 'claim', 'resume', 'finish'].includes(command)) {
     print(workCommand(command, process.argv.slice(3)));
   } else {
     console.error(`Unknown command: ${command}`);
