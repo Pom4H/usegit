@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Pom4H/usegit/.usegit/work.schema.json",
+  "title": "usegit durable work state",
+  "type": "object",
+  "required": ["schemaVersion", "id", "goal", "hypothesis", "base", "status", "createdAt", "updatedAt", "evidence"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^WORK-[A-Za-z0-9._-]+$" },
+    "goal": { "type": "string", "minLength": 1 },
+    "hypothesis": { "type": "string", "minLength": 1 },
+    "experiment": { "type": ["string", "null"] },
+    "base": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["active", "awaiting", "accepted", "rejected", "falsified"] },
+    "lease": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["owner", "acquiredAt", "expiresAt"],
+          "properties": {
+            "owner": { "type": "string" },
+            "acquiredAt": { "type": "string" },
+            "expiresAt": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "awaiting": { "type": ["object", "null"] },
+    "continuation": { "type": ["object", "null"] },
+    "selectedContinuation": { "type": ["string", "null"] },
+    "evidence": { "type": "array" },
+    "decision": { "type": ["object", "null"] }
+  },
+  "additionalProperties": true
+}

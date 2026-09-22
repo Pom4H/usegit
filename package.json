@@ -11,7 +11,13 @@
     "next": "node src/cli.mjs next",
     "context": "node src/cli.mjs context",
     "boundary": "node src/cli.mjs boundary",
-    "integration": "node src/cli.mjs integration"
+    "integration": "node src/cli.mjs integration",
+    "work": "node src/cli.mjs work",
+    "start": "node src/cli.mjs start",
+    "status": "node src/cli.mjs status",
+    "await": "node src/cli.mjs await",
+    "resume": "node src/cli.mjs resume",
+    "finish": "node src/cli.mjs finish"
   },
   "engines": { "node": ">=22" }
 }

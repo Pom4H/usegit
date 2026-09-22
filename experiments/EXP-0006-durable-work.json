@@ -1,0 +1,21 @@
+{
+  "id": "EXP-0006",
+  "question": "Can an AI invocation stop at an external wait and another invocation safely continue from Git alone?",
+  "hypothesis": "Durable WORK refs with leases and explicit await continuations let a fresh agent resume correctly without chat history, while compare-and-swap ref updates prevent silent concurrent state loss.",
+  "status": "running",
+  "conditions": {
+    "stateNamespace": "refs/usegit/work/*",
+    "ownership": "expiring lease",
+    "suspension": "await releases lease",
+    "persistence": "state commit containing work.json"
+  },
+  "metrics": [
+    "resume_success_rate",
+    "tokens_to_first_correct_action",
+    "stale_takeover_success_rate",
+    "lost_update_count",
+    "human_clarifications"
+  ],
+  "evidence": [],
+  "decision": null
+}

@@ -1,10 +1,12 @@
 import { execFileSync } from 'node:child_process';
 
 export function git(args, options = {}) {
+  const hasInput = options.input !== undefined;
   return execFileSync('git', args, {
     cwd: options.cwd ?? process.cwd(),
     encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: [hasInput ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+    input: options.input,
     env: { ...process.env, ...options.env },
   }).trimEnd();
 }

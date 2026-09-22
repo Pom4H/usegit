@@ -2,17 +2,48 @@
 
 ## Goal
 
-Make repository history useful to an AI agent at design time, not merely auditable after the fact.
+Make repository history useful to an AI agent at design time and make unfinished work durable across model invocations.
 
-A snapshot answers **what exists**. The causal history should answer **why it exists, what alternatives were tested, what evidence changed the decision, and which assumptions are still unresolved**.
+A snapshot answers **what exists**. The causal history should answer **why it exists, what alternatives were tested, what evidence changed the decision, which assumptions are unresolved, and what execution is currently suspended**.
 
-## Three linked graphs
+## Four linked graphs
 
 1. **Intent graph** — goals, hypotheses, dependencies and supersession.
 2. **Change graph** — normal Git commits and parent edges.
 3. **Evidence graph** — CI observations attached to commits through `refs/notes/usegit`.
+4. **Work graph** — live execution state under `refs/usegit/work/*`.
 
-The graphs are intentionally not collapsed into one giant commit message. Commit trailers are indexes and stable links; experiment records are durable knowledge; notes are mutable/materialized observations.
+The graphs are intentionally not collapsed into one giant commit message. Commit trailers are indexes and stable links; experiment records are durable knowledge; notes are observations; work refs are mutable execution pointers backed by immutable state commits.
+
+## Durable work and leases
+
+The model must not own process state. It owns only the next decision.
+
+Each `WORK-*` ref points to a tiny Git commit containing `work.json`. Updating the work ref uses compare-and-swap semantics through `git update-ref <ref> <new> <old>`. State commits parent the previous state commit, so a work unit has its own auditable transition history.
+
+```text
+WORK active
+   |
+   | lease(owner, expiresAt)
+   v
+change / reason
+   |
+   | usegit await(event, continuations)
+   v
+WORK awaiting       <- no lease; invocation may disappear
+   |
+   | evidence arrives
+   | usegit resume(result)
+   v
+WORK active         <- fresh lease, possibly a different agent
+   |
+   v
+accepted | rejected | falsified
+```
+
+An active lease prevents another agent from taking the same next decision. Expiration does not rewrite history; `status` derives `stale` from the clock and permits takeover. Awaiting deliberately releases ownership because no model should consume a context window merely to poll infrastructure.
+
+The first command in a fresh invocation is `usegit context`. It fetches the work namespace and returns a compact view of active, awaiting, stale and completed work together with causal history.
 
 ## Negative knowledge
 
@@ -51,20 +82,19 @@ The current policy recognizes four explicit reasons to materialize a PR:
 
 Multiple accepted work items behind the same boundary are batched into one integration set. Unfinished work produces no placeholder PR. Conflicting work is resolved before PR creation is considered.
 
-The policy is executable through `usegit integration <plan.json>`; it is versioned and must evolve from measured evidence rather than convention.
-
 ## Stable identity
 
-A SHA identifies a concrete revision. `Usegit-Change-Id` identifies the conceptual change across amendments, rebases and repair iterations. `Usegit-Experiment` identifies the question being tested.
+A SHA identifies a concrete revision. `Usegit-Change-Id` identifies the conceptual change across amendments, rebases and repair iterations. `Usegit-Experiment` identifies the question being tested. `WORK-*` identifies a durable execution unit across model invocations and owners.
 
 ## Recursion
 
 The closed loop is:
 
 ```text
-history -> report -> weakest/unknown assumption -> next experiment
-   ^                                             |
-   +------------- change <- evidence <-----------+
+context -> next decision -> change -> evidence -> durable state
+   ^                                      |
+   |          await / invocation exit     |
+   +--------------- resume <--------------+
 ```
 
-`npm run next` implements the first deliberately simple policy. The policy itself is versioned and must be improved by experiments in this same repository.
+`npm run next` implements the first deliberately simple experiment-selection policy. The policy itself is versioned and must be improved by experiments in this same repository.
