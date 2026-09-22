@@ -1,8 +1,0 @@
-{
-  "intent": "example",
-  "hypothesis": "implementation and its test belong to one causal unit",
-  "changes": [
-    { "path": "src/example.mjs", "causalUnit": "unit-a", "lines": 40 },
-    { "path": "test/example.test.mjs", "causalUnit": "unit-a", "lines": 25 }
-  ]
-}
