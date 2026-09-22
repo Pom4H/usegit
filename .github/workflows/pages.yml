@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - experiment/causal-memory-v0
     paths:
       - "site/**"
       - ".github/workflows/pages.yml"
