@@ -5,6 +5,7 @@ import { history, validationErrors } from './metadata.mjs';
 import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
+import { configureRepository } from './setup.mjs';
 
 const command = process.argv[2] ?? 'context';
 
@@ -23,6 +24,8 @@ if (command === 'context') {
   print(buildReport());
 } else if (command === 'next') {
   print(nextExperiment(buildReport()));
+} else if (command === 'setup') {
+  print(configureRepository());
 } else if (command === 'validate') {
   const errors = validationErrors();
   if (errors.length) {
