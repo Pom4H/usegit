@@ -28,7 +28,8 @@ test('init is idempotent and preserves repository-specific agent instructions', 
     assert.match(agentsAfterFirst, /Keep this text\./);
     assert.ok(agentsAfterFirst.includes(AGENT_START));
     assert.ok(agentsAfterFirst.includes(AGENT_END));
-    assert.match(agentsAfterFirst, /WORK-\*/);\n    assert.match(agentsAfterFirst, /claim-next/);
+    assert.match(agentsAfterFirst, /WORK-\*/);
+    assert.match(agentsAfterFirst, /claim-next/);
     assert.match(agentsAfterFirst, /await WORK-\*/);
     assert.match(agentsAfterFirst, /Pull requests are integration boundaries/);
     assert.match(workflowAfterFirst, /reusable\.yml@v1/);
