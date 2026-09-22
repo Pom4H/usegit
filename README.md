@@ -4,6 +4,34 @@
 
 The repository dogfoods itself. Meaningful changes carry machine-readable causal metadata, CI materializes evidence into Git notes, live work is persisted under Git refs, and the CLI reconstructs what was tried, what is still running, what is awaiting external evidence, and what should happen next.
 
+## Adopt it in an existing repository
+
+No language, framework or package-manager migration is required.
+
+```bash
+npx --yes github:Pom4H/usegit#main init
+git add .usegit AGENTS.md experiments/README.md .github/workflows/usegit-causal.yml
+git commit -m "chore: adopt usegit"
+```
+
+That commit is the **bootstrap boundary**. Existing history stays untouched. Starting with the following non-merge commit, CI requires the causal trailers.
+
+`init` is idempotent and intentionally narrow. It preserves repository-specific `AGENTS.md` content outside a managed marker block, configures Git notes rewrite behavior, adds commit-boundary and integration examples, and installs a small caller workflow for the reusable usegit CI.
+
+The generated agent protocol also enables the durable `WORK-*` lifecycle already built into usegit: agents inspect existing work before starting, claim leases, persist continuations before waiting, and can resume from Git without relying on chat history.
+
+The target project does not need to add usegit as a dependency:
+
+```bash
+npx --yes github:Pom4H/usegit#main context
+npx --yes github:Pom4H/usegit#main start --goal "..." --hypothesis "..." --experiment EXP-0001
+npx --yes github:Pom4H/usegit#main await WORK-... --event ci:test
+npx --yes github:Pom4H/usegit#main resume WORK-... --result success --evidence "..."
+npx --yes github:Pom4H/usegit#main next
+npx --yes github:Pom4H/usegit#main boundary -- .usegit/plan.json
+npx --yes github:Pom4H/usegit#main integration -- .usegit/integration.json
+```
+
 ## Model
 
 ```text
@@ -88,6 +116,7 @@ The current hypothesis is that `dynamic` will preserve intent and revert precisi
 
 ```bash
 npm test
+npm run init
 npm run context
 npm run status
 npm run report

@@ -1,11 +1,12 @@
 {
   "name": "usegit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": { "usegit": "./src/cli.mjs" },
   "scripts": {
     "test": "node --test",
+    "init": "node src/cli.mjs init",
     "validate": "node src/cli.mjs validate",
     "report": "node src/cli.mjs report",
     "next": "node src/cli.mjs next",

@@ -1,0 +1,53 @@
+name: usegit reusable
+
+on:
+  workflow_call:
+    inputs:
+      tool_ref:
+        description: usegit Git ref to execute
+        required: false
+        type: string
+        default: main
+
+jobs:
+  causal-history:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout usegit
+        uses: actions/checkout@v4
+        with:
+          repository: Pom4H/usegit
+          ref: ${{ inputs.tool_ref }}
+          path: .usegit-runtime
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Configure evidence transport
+        run: node .usegit-runtime/src/cli.mjs setup
+
+      - name: Validate causal history
+        run: node .usegit-runtime/src/cli.mjs validate
+
+      - name: Build causal report
+        run: node .usegit-runtime/src/cli.mjs report > usegit-report.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usegit-report
+          path: usegit-report.json
+
+      - name: Materialize CI evidence
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          git config user.name "usegit[bot]"
+          git config user.email "usegit[bot]@users.noreply.github.com"
+          git fetch origin refs/notes/usegit:refs/notes/usegit || true
+          node .usegit-runtime/src/note.mjs "$GITHUB_SHA" "success"
+          git push origin refs/notes/usegit

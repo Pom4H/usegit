@@ -1,4 +1,4 @@
-import { git } from './git.mjs';
+import { git, tryGit } from './git.mjs';
 
 const REQUIRED = ['changeId', 'experiment', 'intent', 'hypothesis', 'granularity', 'decision'];
 
@@ -44,13 +44,39 @@ export function history(limit = 200) {
     });
 }
 
-export function validationErrors(commits = history()) {
+export function bootstrapSha() {
+  const additions = tryGit([
+    'log',
+    '--diff-filter=A',
+    '--format=%H',
+    '--',
+    '.usegit/config.json',
+  ])
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return additions.at(-1) ?? null;
+}
+
+export function validationErrors(commits = history(), options = {}) {
   const chronological = [...commits].reverse();
-  const firstStructured = chronological.findIndex((c) => c.metadata.changeId);
-  if (firstStructured < 0) return ['No structured usegit commit exists yet.'];
+  const detectedBootstrap = options.bootstrapSha === undefined ? bootstrapSha() : options.bootstrapSha;
+  const bootstrapIndex = detectedBootstrap
+    ? chronological.findIndex((commit) => commit.sha === detectedBootstrap)
+    : -1;
+  const firstStructured = chronological.findIndex((commit) => commit.metadata.changeId);
+
+  let startIndex;
+  if (bootstrapIndex >= 0) {
+    startIndex = bootstrapIndex + 1;
+  } else if (firstStructured >= 0) {
+    startIndex = firstStructured;
+  } else {
+    return ['No structured usegit commit exists yet and no bootstrap boundary was found.'];
+  }
 
   const errors = [];
-  for (const commit of chronological.slice(firstStructured)) {
+  for (const commit of chronological.slice(startIndex)) {
     if (commit.parents.length > 1) continue;
     for (const field of REQUIRED) {
       if (!commit.metadata[field]) errors.push(`${commit.sha.slice(0, 8)} missing Usegit-${field}`);

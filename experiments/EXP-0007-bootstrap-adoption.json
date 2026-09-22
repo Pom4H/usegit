@@ -1,0 +1,22 @@
+{
+  "id": "EXP-0007",
+  "question": "Can an existing repository adopt causal Git memory and durable agent work state without changing its language, package manager or legacy history?",
+  "hypothesis": "One idempotent init command plus a reusable CI workflow can establish causal history, durable WORK refs and integration-boundary rules while exempting only the bootstrap commit.",
+  "status": "running",
+  "conditions": {
+    "target": "arbitrary existing Git repository",
+    "dependencyMode": "npx-from-github",
+    "ciMode": "reusable-workflow",
+    "workState": "refs/usegit/work/*"
+  },
+  "metrics": [
+    "files_touched_by_init",
+    "idempotent_reinit",
+    "legacy_history_rewrites_required",
+    "post_bootstrap_metadata_coverage",
+    "target_stack_changes_required",
+    "durable_work_protocol_present"
+  ],
+  "evidence": [],
+  "decision": null
+}

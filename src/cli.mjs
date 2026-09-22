@@ -6,6 +6,7 @@ import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
 import { decideIntegration } from './integration.mjs';
+import { initializeRepository } from './init.mjs';
 import { awaitWork, finishWork, resumeWork, startWork, workStatus } from './work.mjs';
 import { configureRepository } from './setup.mjs';
 
@@ -89,7 +90,10 @@ function workCommand(action, values) {
 }
 
 try {
-  if (command === 'context') {
+  if (command === 'init') {
+    const args = parseArgs(process.argv.slice(3));
+    print(initializeRepository(process.cwd(), { toolRef: args.toolRef }));
+  } else if (command === 'context') {
     const commits = history(30);
     print({
       head: commits[0]?.sha ?? null,
