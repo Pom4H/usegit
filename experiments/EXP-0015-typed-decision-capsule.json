@@ -14,7 +14,9 @@
     "contextBudget": {
       "defaultMaxWork": 32,
       "hardMaxWork": 128
-    }
+    },
+    "mechanisticSafetyStatus": "passed",
+    "behavioralStatus": "pending"
   },
   "metrics": [
     "prompt_injection_inline",
@@ -35,6 +37,38 @@
     "selectedWorkAt1000Max": 32,
     "capsuleBytesAt1000Max": 100000
   },
-  "evidence": [],
-  "decision": null
+  "evidence": [
+    {
+      "kind": "adversarial-ci",
+      "trust": "observed",
+      "source": "github-actions:35743273673",
+      "commit": "759f5bd07296de0a938f855685fd3fcac906c6d4",
+      "result": "success",
+      "metrics": {
+        "robust": true,
+        "blockers": [],
+        "promptInjectionInline": false,
+        "contentRefTracksChange": true,
+        "evidenceSemanticsDistinguished": true,
+        "cleanCurrentTreeAdmissible": 1,
+        "staleCurrentTreeAdmissible": 0,
+        "workApplicabilityDistinguished": true,
+        "negativeConditionsDistinguished": true,
+        "staleSnapshotSafe": true,
+        "snapshotAuthoritativeForMutation": false,
+        "mutationsRequireResync": true,
+        "totalWorkAtScale": 1000,
+        "selectedWorkAtScale": 32,
+        "omittedWorkAtScale": 968,
+        "capsuleBytesAtScale": 84464,
+        "truncatedAtScale": true
+      },
+      "conclusion": "The typed representation closes all six mechanistic representation failures found by EXP-0014. Behavioral fresh-agent decision accuracy is still unmeasured, so EXP-0015 remains running."
+    }
+  ],
+  "decision": null,
+  "notes": [
+    "Mechanistic red-team passed on GitHub Actions run 35743273673.",
+    "The startup default may move from the falsified Markdown projection to the typed capsule, but EXP-0015 is not accepted until behavioral fresh-agent evaluation is completed."
+  ]
 }

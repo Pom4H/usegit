@@ -26,7 +26,7 @@ import {
 import { configureRepository } from './setup.mjs';
 import { buildViewModel, renderView, writeView } from './view.mjs';
 
-const command = process.argv[2] ?? 'context';
+const command = process.argv[2] ?? 'capsule';
 
 function print(value) {
   process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
