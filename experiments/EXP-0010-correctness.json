@@ -5,7 +5,10 @@
   "status": "running",
   "conditions": {
     "semanticResources": "hierarchical read/write claims",
-    "trustedEvidence": ["observed", "attested"],
+    "trustedEvidence": [
+      "observed",
+      "attested"
+    ],
     "acceptance": "trusted evidence must match the exact decision tree",
     "doctor": "read-only by default; repair only performs safe synchronization"
   },
@@ -16,6 +19,22 @@
     "false_positive_rate",
     "unsafe_auto_repair_count"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "kind": "chaos-ci",
+      "source": "github-actions:35699204413",
+      "result": "success",
+      "observations": [
+        "asserted evidence was rejected for acceptance",
+        "observed evidence became invalid after the Git tree changed",
+        "revalidation on the new tree allowed acceptance",
+        "semantic write/read collision was detected across disjoint file scopes",
+        "doctor detected malformed active WORK without inventing a repair",
+        "doctor --repair synchronized refs/notes and completed healthy on repository state",
+        "remote durable handoff remained successful with observed tree-bound evidence"
+      ],
+      "discoveredFailure": "double evidence normalization initially dropped subject.tree; chaos CI exposed it and UG-0019 was revised to make normalization idempotent"
+    }
+  ],
   "decision": null
 }

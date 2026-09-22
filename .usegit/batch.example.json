@@ -11,7 +11,20 @@
       "id": "WORK-example-a",
       "goal": "improve component A",
       "hypothesis": "change A improves its objective metric",
-      "scopes": ["src/a/**", "test/a/**"],
+      "scopes": [
+        "src/a/**",
+        "test/a/**"
+      ],
+      "resources": [
+        {
+          "name": "system.a",
+          "access": "write"
+        },
+        {
+          "name": "metric.quality",
+          "access": "read"
+        }
+      ],
       "success": "A metric improves without regression",
       "priority": 20
     },
@@ -19,7 +32,20 @@
       "id": "WORK-example-b",
       "goal": "improve component B",
       "hypothesis": "change B improves its objective metric",
-      "scopes": ["src/b/**", "test/b/**"],
+      "scopes": [
+        "src/b/**",
+        "test/b/**"
+      ],
+      "resources": [
+        {
+          "name": "system.b",
+          "access": "write"
+        },
+        {
+          "name": "metric.quality",
+          "access": "read"
+        }
+      ],
       "success": "B metric improves without regression",
       "priority": 10
     }

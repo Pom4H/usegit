@@ -111,6 +111,60 @@ blocked     independent set
         CAS refs/usegit/work/*
 ```
 
+## Semantic resources
+
+Filesystem scopes are necessary but not sufficient for concurrency. WORK may also claim semantic resources:
+
+```text
+renderer.lighting       write
+metric.reality-gap      read
+gpu.frame-budget        read
+protocol.modbus.*       write
+```
+
+Names are hierarchical. Exact names, `namespace.*`, and `*` are supported. Two read claims may execute concurrently; any overlapping pair containing a write is a conflict. The worker queue applies both filesystem scopes and semantic resource claims when constructing its independent dispatch set.
+
+Semantic resources are intentionally declarative rather than inferred as truth from imports. Static analysis may suggest claims later, but an inference engine must not silently weaken an explicit reservation.
+
+## Evidence provenance and tree-exact acceptance
+
+Evidence records distinguish provenance:
+
+- `asserted`: supplied by an agent; useful context but zero acceptance trust;
+- `observed`: produced by a runner/tool with a named source;
+- `attested`: produced by a trusted external/human source.
+
+Observed and attested evidence must name an exact Git tree and source. The runtime also captures commit, environment snapshot, and a deterministic environment fingerprint.
+
+```text
+tree T0 -- observed success --> valid evidence for T0
+   |
+   +-- code change --> tree T1
+                       |
+                       +-- old evidence does not accept T1
+```
+
+`finish --decision accepted` therefore requires positive observed/attested evidence whose subject tree equals the tree at the decision point. This turns base drift into a required revalidation rather than a social convention.
+
+CI notes under `refs/notes/usegit` use the same provenance model, so evidence transport and WORK evidence share one trust vocabulary.
+
+## Doctor and reconciliation
+
+`usegit doctor` is a consistency checker for the development runtime. It validates Git-backed WORK state rather than application code.
+
+It detects:
+
+- malformed WORK refs and impossible lease/state combinations;
+- missing or diverged base commits;
+- missing WORK dependencies;
+- live filesystem or semantic resource collisions;
+- trusted evidence pointing at missing Git objects or missing environment provenance;
+- accepted WORK without a matching decision tree and successful trusted evidence.
+
+The default is read-only. `usegit doctor --repair` is deliberately conservative: it only synchronizes remote `refs/usegit/work/*` and `refs/notes/usegit`. It does not steal leases, rewrite decisions, manufacture evidence, or auto-resolve conflicts.
+
+This is the recovery principle: **detect broadly, repair only what is mechanically unambiguous**.
+
 ## Negative knowledge
 
 Rejected and falsified hypotheses are first-class results. Deleting failed attempts destroys information and causes future agents to revisit the same dead ends.

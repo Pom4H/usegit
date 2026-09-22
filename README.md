@@ -60,8 +60,10 @@ export USEGIT_AGENT_ID=chatgpt-a
 usegit start \
   --goal "reduce reality gap below 0.05" \
   --hypothesis "contact shadows improve similarity" \
-  --experiment EXP-0017 \\
-  --scope "src/render/**,test/render/**"
+  --experiment EXP-0017 \
+  --scope "src/render/**,test/render/**" \
+  --resource-write "renderer.lighting" \
+  --resource-read "metric.reality-gap,gpu.frame-budget"
 ```
 
 Scopes are exact paths, `path/**` subtrees, or `**`. `usegit status` reports active scope overlaps (and undeclared scopes) so agents can avoid competing for the same causal surface before editing. The returned `WORK-*` ref has an expiring lease. Before waiting on CI or another external event, persist a continuation and release the lease:
@@ -86,16 +88,28 @@ export USEGIT_AGENT_ID=chatgpt-b
 
 usegit resume WORK-1234ABCD \
   --result success \
-  --evidence "reality gap 0.091 -> 0.074"
+  --evidence "reality gap 0.091 -> 0.074" \
+  --evidence-kind observed \
+  --evidence-source "github-actions:123456"
 ```
 
 The selected continuation is returned with a new lease. Active work whose lease expires is surfaced as `stale` and can be reclaimed. Ref updates use compare-and-swap semantics, so concurrent agents cannot silently overwrite the same work state.
 
-Finish only after evidence supports a decision:
+Finish only after evidence supports a decision. `accepted` is deliberately strict: usegit requires successful `observed` or `attested` evidence for the exact Git tree being accepted.
 
 ```bash
-usegit finish WORK-1234ABCD --decision accepted --summary "quality improved within GPU budget"
+usegit evidence WORK-1234ABCD \
+  --kind observed \
+  --source "gpu-ci:123456" \
+  --result success \
+  --observation "quality improved within GPU budget"
+
+usegit finish WORK-1234ABCD \
+  --decision accepted \
+  --summary "quality improved within GPU budget"
 ```
+
+If the tree changes after evidence was recorded, acceptance fails until that new tree is revalidated. Agent-written `asserted` evidence remains useful context, but cannot by itself accept work.
 
 ## Control plane and worker plane
 
@@ -176,6 +190,43 @@ usegit claim-next
 
 Dependencies unblock automatically after predecessor WORK reaches `accepted`. Awaiting, active, escalated and stale work continue to reserve their scopes, so waiting for CI does not accidentally let another worker modify the same causal surface.
 
+## Semantic resources, evidence provenance, and doctor
+
+File scopes prevent obvious edit collisions, but two changes in different files can still compete for the same system invariant. WORK may therefore declare hierarchical semantic resources with read/write access:
+
+```text
+WORK-A
+  files:     src/render/shadows/**
+  write:     renderer.lighting
+  read:      metric.reality-gap
+             gpu.frame-budget
+
+WORK-B
+  files:     src/materials/**
+  read:      renderer.lighting
+```
+
+The files do not overlap, but the semantic write/read pair does, so the scheduler will not expose both as concurrently safe. Read/read claims remain parallel.
+
+Evidence has three trust levels:
+
+```text
+asserted   agent statement; context only
+observed   runner/tool observation with source + exact Git tree
+attested   trusted external/human decision with source + exact Git tree
+```
+
+Observed and attested records include commit, tree, environment snapshot and environment fingerprint. A positive acceptance decision must match the exact evidence tree.
+
+Run the consistency checker at any time:
+
+```bash
+usegit doctor
+usegit doctor --repair
+```
+
+`doctor` checks malformed WORK refs, impossible lease/state combinations, missing dependencies, diverged bases, semantic collisions, broken evidence object references and accepted work without matching trusted evidence. It is read-only by default. `--repair` only performs safe synchronization of remote WORK refs and evidence notes; it never invents a decision or steals a lease.
+
 ## Pull requests are not work items
 
 A task, agent, branch or experiment does not automatically deserve a pull request. Work remains in the causal graph until it has accepted evidence and can be grouped into a compatible integration set.
@@ -199,6 +250,7 @@ npm test
 npm run init
 npm run context
 npm run status
+npm run doctor
 npm run report
 npm run next
 npm run boundary -- .usegit/plan.json
