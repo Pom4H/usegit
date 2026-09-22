@@ -37,10 +37,27 @@
       "filesTouchedByBootstrap": 6,
       "legacyHistoryRewritesRequired": 0,
       "targetStackChangesRequired": 0
+    },
+    {
+      "source": "paired-post-bootstrap-enforcement",
+      "tree": "344291a8722c20639e75adbc7648d04b79e23ccd",
+      "unstructured": {
+        "commit": "607420a3e041a42e8e04b4cb3541aca3ce6d22b9",
+        "runId": 35696207743,
+        "validation": "failure",
+        "missingRequiredTrailers": 6
+      },
+      "structured": {
+        "commit": "da4331a57dde742634faa2b2fe6b29709fd59b31",
+        "runId": 35696210393,
+        "validation": "success",
+        "report": "success",
+        "gitNoteMaterialized": true
+      }
     }
   ],
   "decision": {
     "outcome": "accepted",
-    "reason": "The init path is idempotent in an isolated Git repository and a separate legacy-style fixture branch completed the reusable workflow end-to-end from an unstructured bootstrap commit. CI validated the bootstrap boundary, generated the causal report, and attached success evidence in refs/notes/usegit without rewriting legacy history or changing the target stack."
+    "reason": "Init is idempotent and preserves existing agent instructions. A legacy-style fixture accepted one unstructured adoption commit, generated a report and Git-note evidence without rewriting history or changing the target stack. A paired same-tree test then rejected the next unstructured commit for exactly six missing causal trailers while accepting the identical structured change, proving the bootstrap exemption is one-shot."
   }
 }
