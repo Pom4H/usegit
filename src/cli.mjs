@@ -4,6 +4,7 @@ import { buildReport } from './report.mjs';
 import { history, validationErrors } from './metadata.mjs';
 import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
+import { compactCausalHistory } from './context.mjs';
 
 const command = process.argv[2] ?? 'context';
 
@@ -12,10 +13,10 @@ function print(value) {
 }
 
 if (command === 'context') {
-  const commits = history(30).filter((x) => x.metadata.changeId).slice(0, 12);
+  const commits = history(30);
   print({
     head: commits[0]?.sha ?? null,
-    causalHistory: commits.map((x) => ({ sha: x.sha.slice(0, 12), subject: x.subject, ...x.metadata })),
+    causalHistory: compactCausalHistory(commits),
     next: nextExperiment(buildReport()),
   });
 } else if (command === 'report') {
