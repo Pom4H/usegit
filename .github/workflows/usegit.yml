@@ -53,6 +53,8 @@ jobs:
           for alias in a b c; do
             bare="/tmp/usegit-${alias}.git"
             workspace="/tmp/usegit-${alias}"
+            check="/tmp/check-${alias}"
+
             git init --bare "$bare"
             git push "$bare" "refs/heads/blind-${alias}:refs/heads/main"
             git -C "$bare" symbolic-ref HEAD refs/heads/main
@@ -66,14 +68,20 @@ jobs:
             test -z "$(git -C "$workspace" remote)"
             test "$(git -C "$workspace" rev-parse HEAD^{tree})" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
 
-            tar -C "$workspace" -czf "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.tar.gz" .
+            (cd "$workspace" && zip -qr "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.zip" .)
+
+            mkdir -p "$check"
+            unzip -q "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.zip" -d "$check"
+            test "$(git -C "$check" branch --show-current)" = "main"
+            test -z "$(git -C "$check" remote)"
+            test "$(git -C "$check" rev-parse HEAD^{tree})" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
           done
       - uses: actions/upload-artifact@v4
         with:
           name: granularity-blind-replay
           path: |
             blind-replay/*.bundle
-            blind-replay/*.tar.gz
+            blind-replay/*.zip
 
   provenance:
     if: ${{ always() && github.event_name == 'push' }}
