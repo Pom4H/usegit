@@ -1,339 +1,240 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>usegit — causal memory for AI-native development</title>
-  <meta name="description" content="usegit turns Git into causal memory and durable execution state for AI agents: intent, hypotheses, work, evidence and decisions survive context loss." />
-  <meta name="theme-color" content="#0a0b0b" />
-  <meta property="og:title" content="usegit — Git should remember why." />
-  <meta property="og:description" content="Causal memory and durable execution state for AI-native software development." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://pom4h.github.io/usegit/" />
-  <link rel="canonical" href="https://pom4h.github.io/usegit/" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%230a0b0b'/%3E%3Cpath d='M18 20h12v8h8v-8h8v24H34v-8h-8v8h-8V20Z' fill='%23f1f2ee'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>usegit — infrastructure for self-learning software systems</title>
+  <meta name="description" content="usegit lets software systems deepen their domain model when uncertainty appears, preserve experiments as durable knowledge, and gate architectural decisions on evidence.">
+  <meta name="theme-color" content="#f4f1e9">
+  <meta property="og:title" content="usegit — systems that learn through Git">
+  <meta property="og:description" content="Progressive domain learning and evidence-gated architecture for AI-native software systems.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pom4h.github.io/usegit/">
+  <link rel="canonical" href="https://pom4h.github.io/usegit/">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
-  <header class="site-header shell">
-    <a class="brand" href="#top" aria-label="usegit home">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span>usegit</span>
-      <em>protocol v0</em>
-    </a>
-    <nav aria-label="Primary navigation">
-      <a href="#model">Model</a>
-      <a href="#experiments">Experiments</a>
+  <header class="header wrap">
+    <a class="brand" href="#top">usegit <span>v0.1.0</span></a>
+    <nav>
+      <a href="#learning">Learning loop</a>
+      <a href="#gates">Architecture gates</a>
       <a href="#install">Install</a>
-      <a class="nav-github" href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub ↗</a>
     </nav>
   </header>
 
   <main id="top">
-    <section class="hero shell">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="status-dot"></span> Open source · MIT</div>
-        <h1>Git should<br />remember <em>why.</em></h1>
-        <p class="lede">usegit turns a repository into causal memory and durable execution state for AI agents. Work survives context loss, CI waits, rebases and handoffs.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="#install">Try the protocol</a>
-          <a class="button ghost" href="https://github.com/Pom4H/usegit/blob/experiment/causal-memory-v0/docs/protocol.md" target="_blank" rel="noreferrer">Read protocol <span aria-hidden="true">↗</span></a>
-        </div>
-        <div class="hero-facts" aria-label="Experiment facts">
-          <div><strong>5.11%</strong><span>causal packet / raw patch bytes</span></div>
-          <div><strong>1.0</strong><span>critical-field recall</span></div>
-          <div><strong>4</strong><span>linked Git graphs</span></div>
-        </div>
+    <section class="hero wrap">
+      <p class="eyebrow">Git substrate for self-learning systems</p>
+      <h1>Let the system learn<br>the domain <em>when it needs to.</em></h1>
+      <p class="lead">
+        usegit turns development into a persistent learning loop. The system starts with the model it has,
+        deepens the domain only when uncertainty blocks progress, stores experiments as durable knowledge,
+        and crosses architectural boundaries only when evidence satisfies an explicit gate.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="#install">Adopt in a repository</a>
+        <a class="button" href="https://github.com/Pom4H/usegit/blob/main/docs/protocol.md" target="_blank" rel="noreferrer">Read the protocol ↗</a>
       </div>
 
-      <div class="hero-visual" aria-label="Causal work graph illustration">
-        <div class="visual-head">
-          <span>causal state</span>
-          <span class="mono muted">HEAD · f7f147a</span>
-        </div>
-        <div class="causal-graph">
-          <div class="graph-line" aria-hidden="true"></div>
-          <article class="graph-node intent">
-            <span class="node-index">01</span>
-            <div><small>INTENT</small><strong>reduce renderer frame cost</strong></div>
-            <span class="chip">goal</span>
-          </article>
-          <article class="graph-node hypothesis">
-            <span class="node-index">02</span>
-            <div><small>HYPOTHESIS</small><strong>cache probe visibility</strong></div>
-            <span class="chip pending">test</span>
-          </article>
-          <article class="graph-node work active-node">
-            <span class="node-index">03</span>
-            <div><small>WORK · refs/usegit/work/*</small><strong>WORK-7C2D · ready</strong></div>
-            <span class="chip blue">worker</span>
-          </article>
-          <article class="graph-node change">
-            <span class="node-index">04</span>
-            <div><small>CHANGE · commit</small><strong>UG-0016 · dynamic</strong></div>
-            <span class="chip">SHA</span>
-          </article>
-          <article class="graph-node evidence">
-            <span class="node-index">05</span>
-            <div><small>EVIDENCE · refs/notes/usegit</small><strong>CI benchmark · success</strong></div>
-            <span class="chip success">note</span>
-          </article>
-          <article class="graph-node decision">
-            <span class="node-index">06</span>
-            <div><small>DECISION</small><strong>accepted / rejected / falsified</strong></div>
-            <span class="chip success">close</span>
-          </article>
-        </div>
-        <div class="visual-foot mono">
-          <span>intent → hypothesis → work → change → evidence → decision</span>
-          <span class="pulse-label"><i></i> persistent</span>
-        </div>
+      <div class="loop" aria-label="Learning loop">
+        <span>work</span><i>→</i>
+        <span>uncertainty</span><i>→</i>
+        <span>experiment</span><i>→</i>
+        <span>evidence</span><i>→</i>
+        <span class="gate">gate</span><i>→</i>
+        <span>new architecture</span>
       </div>
     </section>
 
-    <section class="statement shell" id="model">
-      <p class="section-kicker">THE MISSING LAYER</p>
-      <h2>A snapshot tells an agent <em>what</em> exists.<br />History should tell it <em>why</em>.</h2>
-      <p>Git already has identity, ordering, branching, merging, immutable objects and distributed replication. usegit adds a small causal layer instead of building another project-management database.</p>
-    </section>
-
-    <section class="comparison shell">
-      <article class="compare-card before">
-        <header><span>Typical history</span><span class="badge bad">lossy</span></header>
-        <pre><code><span class="dim">$ git log -1 --format=%B</span>
-
-feat: optimize renderer
-
-<span class="dim"># What was the hypothesis?
-# What failed before this?
-# Is CI evidence still valid?
-# Can another agent safely continue?</span></code></pre>
-      </article>
-      <div class="comparison-arrow" aria-hidden="true">→</div>
-      <article class="compare-card after">
-        <header><span>Causal history</span><span class="badge good">queryable</span></header>
-        <pre><code><span class="dim">perf: cache probe visibility</span>
-
-Usegit-Change-Id: <b>UG-0016</b>
-Usegit-Experiment: <b>EXP-0008</b>
-Usegit-Intent: <b>reduce-frame-cost</b>
-Usegit-Hypothesis: <b>cache-cuts-p95</b>
-Usegit-Granularity: <b>dynamic</b>
-Usegit-Decision: <b>pending</b></code></pre>
-      </article>
-    </section>
-
-    <section class="work-section shell">
-      <div class="section-copy">
-        <p class="section-kicker">DURABLE WORK</p>
-        <h2>The model owns the next decision.<br />Git owns the process.</h2>
-        <p>An invocation can stop when it reaches CI, a human review or any external event. Its continuation lives in a Git ref, not in a context window.</p>
-      </div>
-      <div class="timeline" aria-label="Durable work lifecycle">
-        <div class="timeline-track" aria-hidden="true"></div>
-        <div class="timeline-step">
-          <span>01</span><strong>start</strong><small>claim lease</small>
-        </div>
-        <div class="timeline-step">
-          <span>02</span><strong>change</strong><small>bounded scope</small>
-        </div>
-        <div class="timeline-step highlight">
-          <span>03</span><strong>await</strong><small>persist continuation</small>
-        </div>
-        <div class="timeline-gap">
-          <span>invocation exits</span>
-          <i></i>
-          <span class="muted">no polling · no chat state</span>
-        </div>
-        <div class="timeline-step highlight">
-          <span>04</span><strong>resume</strong><small>fresh agent</small>
-        </div>
-        <div class="timeline-step">
-          <span>05</span><strong>finish</strong><small>record decision</small>
-        </div>
-      </div>
-      <div class="code-window">
-        <div class="window-bar"><span></span><span></span><span></span><em>shell</em></div>
-        <pre><code><span class="prompt">$</span> usegit start --goal <span class="string">"reduce reality gap"</span> --hypothesis <span class="string">"contact shadows help"</span>
-<span class="out">→ WORK-1234ABCD · lease: chatgpt-a · active</span>
-
-<span class="prompt">$</span> usegit await WORK-1234ABCD --event <span class="string">ci:gpu-render</span> \
-    --on-success <span class="string">"combine with material experiment"</span>
-<span class="out">→ awaiting · lease released · continuation persisted</span>
-
-<span class="comment"># another invocation, another agent, no previous chat required</span>
-<span class="prompt">$</span> usegit context
-<span class="out">→ awaiting: WORK-1234ABCD · event: ci:gpu-render</span>
-
-<span class="prompt">$</span> usegit resume WORK-1234ABCD --result success --evidence <span class="string">"gap 0.091 → 0.074"</span></code></pre>
-      </div>
-    </section>
-
-    <section class="routing-section shell">
-      <div class="routing-head">
-        <p class="section-kicker">REASONING SCHEDULER</p>
-        <h2>Control decides.<br />Workers execute.</h2>
-        <p>Routing is based on the work contract, not a hard-coded model name.</p>
-      </div>
-      <div class="routing-board">
-        <article class="plane control">
-          <div class="plane-top"><span class="plane-icon">◎</span><div><small>CONTROL PLANE</small><strong>Deep reasoning</strong></div></div>
-          <ul>
-            <li><span></span>choose hypotheses</li>
-            <li><span></span>resolve conflicting evidence</li>
-            <li><span></span>make architecture decisions</li>
-            <li><span></span>handle escalations</li>
-          </ul>
-          <div class="route-output mono">work.controlQueue[]</div>
-        </article>
-        <div class="router">
-          <span class="router-label">route()</span>
-          <div class="router-core">?</div>
-          <div class="router-checks mono">
-            <span>uncertainty=low</span>
-            <span>oracle=objective</span>
-            <span>success=explicit</span>
-            <span>evidence=explicit</span>
-          </div>
-          <i class="route-left"></i><i class="route-right"></i>
-        </div>
-        <article class="plane worker">
-          <div class="plane-top"><span class="plane-icon">↯</span><div><small>WORKER PLANE</small><strong>Cheap execution</strong></div></div>
-          <ul>
-            <li><span></span>claim bounded work</li>
-            <li><span></span>change declared scope</li>
-            <li><span></span>collect objective evidence</li>
-            <li><span></span>escalate ambiguity</li>
-          </ul>
-          <div class="route-output mono">work.workerReady[]</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="pr-section shell">
-      <div>
-        <p class="section-kicker">INTEGRATION</p>
-        <h2>PRs are boundaries,<br />not inboxes.</h2>
-      </div>
-      <div class="pr-visual">
-        <div class="work-pill">WORK A <b>✓</b></div>
-        <div class="work-pill">WORK B <b>✓</b></div>
-        <div class="work-pill">WORK C <b>✓</b></div>
-        <span class="joiner">}</span>
-        <div class="integration-box"><small>compatible integration set</small><strong>final validation</strong></div>
-        <span class="branch-arrow">→</span>
-        <div class="integration-outcomes">
-          <span>direct merge</span>
-          <span>1 PR <small>only if a real boundary exists</small></span>
-        </div>
-      </div>
-      <p class="pr-note">Human review, protected targets, releases and external contributors are explicit PR boundaries. An agent, task or experiment is not.</p>
-    </section>
-
-    <section class="experiments-section shell" id="experiments">
-      <div class="experiments-head">
+    <section class="thesis">
+      <div class="wrap split">
         <div>
-          <p class="section-kicker">DOGFOODING</p>
-          <h2>The repository is<br />the experiment.</h2>
+          <p class="eyebrow">The idea</p>
+          <h2>Do not model the whole domain up front.</h2>
         </div>
-        <p>usegit tests its own assumptions. Accepted, rejected and falsified results become durable knowledge instead of disappearing into chat.</p>
+        <div class="copy">
+          <p>
+            A self-learning software system should not require a complete ontology before it can act.
+            It should operate with the smallest useful model, notice where that model stops being sufficient,
+            and create a focused learning loop exactly there.
+          </p>
+          <p>
+            In usegit, that loop is visible in the repository: intent, hypothesis, work, evidence and decision
+            survive individual model invocations. The next agent inherits the accumulated domain knowledge
+            instead of rediscovering it from chat.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="learning">
+      <div class="section-head">
+        <p class="eyebrow">Progressive domain deepening</p>
+        <h2>Learn only at the edge of uncertainty.</h2>
+        <p>
+          Cheap execution continues while the contract is clear. Ambiguity is escalated into a bounded experiment.
+          Once the evidence changes what the system knows, that result becomes part of the repository.
+        </p>
       </div>
 
-      <div class="experiment-grid">
-        <article class="experiment-card featured">
-          <header><span>EXP-0003</span><span class="badge good">accepted</span></header>
-          <h3>Context compression</h3>
-          <p>Keep decision-critical causal history while reading far less raw patch data.</p>
-          <div class="metric-row"><strong>5.11%</strong><span>2,272 B causal packet<br />44,485 B raw patch history</span></div>
-          <div class="meter"><i style="width:5.11%"></i><span>20% acceptance threshold</span></div>
-          <footer><span>critical field recall</span><b>1.0</b></footer>
+      <div class="steps">
+        <article>
+          <b>01</b>
+          <h3>Act with the current model</h3>
+          <p>Workers execute bounded work against explicit scope, success criteria and an evidence plan.</p>
+          <code>work.workerReady[]</code>
         </article>
-
-        <article class="experiment-card">
-          <header><span>EXP-0004</span><span class="badge good">accepted</span></header>
-          <h3>Evidence survives rewrite</h3>
-          <p>Git notes were copied to an amended SHA while the original evidence remained preserved.</p>
-          <footer><span>transport</span><b>refs/notes/usegit</b></footer>
+        <article>
+          <b>02</b>
+          <h3>Escalate uncertainty</h3>
+          <p>Architecture choices, conflicting evidence and unclear oracles move back to deeper control.</p>
+          <code>usegit escalate WORK-…</code>
         </article>
-
-        <article class="experiment-card">
-          <header><span>EXP-0007</span><span class="badge good">accepted</span></header>
-          <h3>Portable bootstrap</h3>
-          <p>Adopt usegit without rewriting legacy history or changing the target language and package manager.</p>
-          <footer><span>boundary</span><b>1 bootstrap commit</b></footer>
+        <article>
+          <b>03</b>
+          <h3>Run a falsifiable experiment</h3>
+          <p>The missing piece of domain knowledge becomes a hypothesis with measurable acceptance criteria.</p>
+          <code>EXP-… → evidence</code>
         </article>
-
-        <article class="experiment-card running">
-          <header><span>EXP-0006</span><span class="badge run">running</span></header>
-          <h3>Durable handoff</h3>
-          <p>A fresh invocation recovered awaiting work from Git, verified external CI evidence and selected the encoded continuation.</p>
-          <footer><span>state</span><b>refs/usegit/work/*</b></footer>
+        <article>
+          <b>04</b>
+          <h3>Persist the lesson</h3>
+          <p>Accepted, rejected and falsified results stay queryable so future work does not walk the same loop.</p>
+          <code>refs/notes/usegit</code>
         </article>
+      </div>
+    </section>
 
-        <article class="experiment-card running">
-          <header><span>EXP-0008</span><span class="badge run">running</span></header>
-          <h3>Control / worker routing</h3>
-          <p>Route objective low-uncertainty work to stateless workers; keep ambiguous decisions in deep control.</p>
-          <footer><span>policy</span><b>contract-driven</b></footer>
-        </article>
+    <section class="dark" id="gates">
+      <div class="wrap">
+        <div class="section-head light">
+          <p class="eyebrow">Evidence-gated architecture</p>
+          <h2>Architecture is not a chat opinion.<br>It is a state transition with a gate.</h2>
+          <p>
+            Mark a change as architectural, define what would make it safe to accept, collect evidence on the exact tree,
+            and only then let the system cross the boundary.
+          </p>
+        </div>
 
-        <article class="experiment-card neutral">
-          <header><span>EXP-0002</span><span class="badge neutral-badge">undecided</span></header>
-          <h3>Commit granularity</h3>
-          <p>No winner declared. Three blind histories end at exactly the same tree.</p>
-          <div class="same-tree">
-            <span>A</span><span>B</span><span>C</span><i></i><code>8aaf3530…</code>
+        <div class="gate-layout">
+          <pre><code>$ usegit start \
+  --goal "replace historian storage model" \
+  --hypothesis "partitioned Postgres meets retention and query targets" \
+  --architecture-decision \
+  --success "p95 query &lt; 200 ms; retention cost within budget" \
+  --evidence-plan "replay production-shaped workload in CI"
+
+→ route: control / deep
+→ status: active
+
+$ usegit evidence WORK-ARCH-17 \
+  --kind observed \
+  --source "ci:historian-benchmark-412" \
+  --result success
+
+$ usegit finish WORK-ARCH-17 --decision accepted
+
+→ gate passed for the exact validated tree</code></pre>
+
+          <div class="gate-list">
+            <div><span>1</span><p><strong>Declare the boundary.</strong> The system knows this is not ordinary implementation work.</p></div>
+            <div><span>2</span><p><strong>Define the oracle.</strong> Success is explicit before implementation bias appears.</p></div>
+            <div><span>3</span><p><strong>Attach trusted evidence.</strong> Observations are bound to the exact Git tree and environment.</p></div>
+            <div><span>4</span><p><strong>Persist the decision.</strong> Future agents inherit both the architecture and why it was allowed through.</p></div>
           </div>
-          <footer><span>required</span><b>27 blinded runs</b></footer>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <div class="section-head">
+        <p class="eyebrow">What actually learns</p>
+        <h2>The repository becomes the system's long-term learning substrate.</h2>
+      </div>
+
+      <div class="graphs">
+        <article>
+          <span>Intent</span>
+          <h3>What the system is trying to change</h3>
+          <p>Goals, hypotheses, dependencies and supersession.</p>
+          <code>experiments/*.json</code>
+        </article>
+        <article>
+          <span>Work</span>
+          <h3>What is currently being explored</h3>
+          <p>Leases, scopes, awaits, continuations and handoffs.</p>
+          <code>refs/usegit/work/*</code>
+        </article>
+        <article>
+          <span>Evidence</span>
+          <h3>What the world actually said</h3>
+          <p>Observed and attested results attached without rewriting commits.</p>
+          <code>refs/notes/usegit</code>
+        </article>
+        <article>
+          <span>Decision</span>
+          <h3>What changed in the domain model</h3>
+          <p>Accepted, rejected and falsified knowledge that future work can reuse.</p>
+          <code>Usegit-Decision</code>
         </article>
       </div>
     </section>
 
-    <section class="graphs-section shell">
-      <p class="section-kicker">ONE REPOSITORY · FOUR GRAPHS</p>
-      <div class="graphs-grid">
-        <article><span>01</span><h3>Intent</h3><p>Goals, hypotheses, dependencies and supersession.</p><code>experiments/*.json</code></article>
-        <article><span>02</span><h3>Change</h3><p>Normal Git commits, parents and stable Change IDs.</p><code>refs/heads/*</code></article>
-        <article><span>03</span><h3>Evidence</h3><p>CI observations attached without rewriting commits.</p><code>refs/notes/usegit</code></article>
-        <article><span>04</span><h3>Work</h3><p>Leases, awaits, continuations and execution handoffs.</p><code>refs/usegit/work/*</code></article>
+    <section class="proof">
+      <div class="wrap">
+        <p class="eyebrow">Dogfooded in this repository</p>
+        <div class="proof-grid">
+          <article>
+            <strong>5.11%</strong>
+            <p>causal context size compared with recent raw patch history</p>
+            <small>EXP-0003 · accepted</small>
+          </article>
+          <article>
+            <strong>1.0</strong>
+            <p>critical causal field recall after context compression</p>
+            <small>EXP-0003 · accepted</small>
+          </article>
+          <article>
+            <strong>1 commit</strong>
+            <p>portable bootstrap boundary without rewriting legacy history</p>
+            <small>EXP-0007 · accepted</small>
+          </article>
+          <article>
+            <strong>2 lanes</strong>
+            <p>validated reusable CI on POSIX and self-hosted Windows runners</p>
+            <small>EXP-0011 · accepted</small>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section class="install-section shell" id="install">
-      <div class="install-copy">
-        <p class="section-kicker">TRY THE PROTOTYPE</p>
-        <h2>Add memory,<br />not another service.</h2>
-        <p>No database. No language migration. No project-management server. Existing history stays untouched.</p>
-        <div class="install-meta"><span>Node ≥ 22</span><span>MIT</span><span>prototype branch</span></div>
+    <section class="install wrap" id="install">
+      <div>
+        <p class="eyebrow">Start with one repository</p>
+        <h2>No service to deploy.</h2>
+        <p>
+          usegit is deliberately small: Git objects, refs, notes and a CLI. Existing history stays untouched.
+          The first adoption commit becomes the bootstrap boundary.
+        </p>
       </div>
-      <div class="install-terminal">
-        <div class="window-bar"><span></span><span></span><span></span><em>terminal</em></div>
-        <div class="command-row">
-          <code>npx --yes github:Pom4H/usegit#experiment/causal-memory-v0 init</code>
-          <button class="copy-button" data-copy="npx --yes github:Pom4H/usegit#experiment/causal-memory-v0 init" type="button">copy</button>
-        </div>
-        <pre><code><span class="out">✓ .usegit/ configured</span>
-<span class="out">✓ AGENTS.md protocol block installed</span>
-<span class="out">✓ causal CI workflow installed</span>
-<span class="out">✓ existing history left untouched</span>
+      <pre><code>npx --yes github:Pom4H/usegit#main init
 
-<span class="prompt">$</span> usegit context
-<span class="dim">{ head, work, causalHistory, next }</span></code></pre>
-        <a class="terminal-link" href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">github.com/Pom4H/usegit <span>↗</span></a>
-      </div>
+git add .usegit AGENTS.md experiments/README.md \
+  .github/workflows/usegit-causal.yml
+
+git commit -m "chore: adopt usegit"</code></pre>
     </section>
   </main>
 
-  <footer class="site-footer shell">
-    <div class="brand footer-brand">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span>usegit</span>
+  <footer class="footer wrap">
+    <span class="brand">usegit</span>
+    <p>Infrastructure for self-learning software systems.</p>
+    <div>
+      <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source ↗</a>
+      <a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT</a>
     </div>
-    <p>Git as design-time memory for AI-native software development.</p>
-    <div><a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source</a><a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a></div>
   </footer>
-
-  <script src="./app.js"></script>
 </body>
 </html>
