@@ -5,6 +5,7 @@ import { history, validationErrors } from './metadata.mjs';
 import { nextExperiment } from './next.mjs';
 import { evaluatePlan } from './granularity.mjs';
 import { compactCausalHistory } from './context.mjs';
+import { decideIntegration } from './integration.mjs';
 import { configureRepository } from './setup.mjs';
 
 const command = process.argv[2] ?? 'context';
@@ -38,6 +39,10 @@ if (command === 'context') {
   const file = process.argv[3] ?? '.usegit/plan.json';
   const plan = JSON.parse(fs.readFileSync(file, 'utf8'));
   print(evaluatePlan(plan));
+} else if (command === 'integration') {
+  const file = process.argv[3] ?? '.usegit/integration.json';
+  const plan = JSON.parse(fs.readFileSync(file, 'utf8'));
+  print(decideIntegration(plan));
 } else {
   console.error(`Unknown command: ${command}`);
   process.exitCode = 2;

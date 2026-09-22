@@ -10,7 +10,8 @@
     "report": "node src/cli.mjs report",
     "next": "node src/cli.mjs next",
     "context": "node src/cli.mjs context",
-    "boundary": "node src/cli.mjs boundary"
+    "boundary": "node src/cli.mjs boundary",
+    "integration": "node src/cli.mjs integration"
   },
   "engines": { "node": ">=22" }
 }

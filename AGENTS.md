@@ -22,3 +22,5 @@ This repository is a self-hosting experiment. The development process is part of
 8. Preserve negative knowledge. If a hypothesis failed under known conditions, record that result rather than deleting the attempt and repeating it later.
 9. Run `npm run next` after the experiment changes state. Use the output to choose the next falsifiable step.
 10. Never optimize commit size for aesthetics. A commit is good when one causal claim can be independently understood, tested and reverted.
+11. Do not create a pull request merely because an agent or work item exists. PRs are optional integration artifacts, not work containers.
+12. When a set of work items has accepted evidence, evaluate it with `npm run integration -- <plan.json>`. Create at most one PR for that integration set, and only when the policy reports a real human-review, protected-target, release or external-contributor boundary.

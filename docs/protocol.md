@@ -28,6 +28,31 @@ Candidate rule for `dynamic`: **one commit = one falsifiable causal unit**. Spli
 
 Line count and file count are secondary safety signals. They may indicate that the proposed causal unit is too broad, but they do not define the unit.
 
+## Pull requests are integration boundaries
+
+A pull request is not a unit of work, an agent mailbox or durable memory. Git already holds the work; causal metadata and evidence hold its meaning.
+
+The default lifecycle is:
+
+```text
+work -> evidence -> accepted -> compatible integration set -> final validation
+                                                     |-> direct merge
+                                                     +-> one PR when a real boundary exists
+```
+
+Creating one PR per agent or work item is the baseline being challenged by `EXP-0005`.
+
+The current policy recognizes four explicit reasons to materialize a PR:
+
+- a human review is required;
+- the target is protected and requires a PR;
+- the integration crosses a release boundary;
+- an external contributor/trust boundary requires review.
+
+Multiple accepted work items behind the same boundary are batched into one integration set. Unfinished work produces no placeholder PR. Conflicting work is resolved before PR creation is considered.
+
+The policy is executable through `usegit integration <plan.json>`; it is versioned and must evolve from measured evidence rather than convention.
+
 ## Stable identity
 
 A SHA identifies a concrete revision. `Usegit-Change-Id` identifies the conceptual change across amendments, rebases and repair iterations. `Usegit-Experiment` identifies the question being tested.

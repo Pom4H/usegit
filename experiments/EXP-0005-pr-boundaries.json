@@ -1,0 +1,19 @@
+{
+  "id": "EXP-0005",
+  "question": "Can pull requests be reduced to real integration boundaries instead of being created per task or agent?",
+  "hypothesis": "Integration sets backed by causal evidence can reduce pull-request count by at least 80% on multi-work batches without bypassing explicit human-review, protected-target, release or external-contributor boundaries.",
+  "status": "running",
+  "conditions": {
+    "baseline": "one pull request per work item",
+    "candidate": "one optional pull request per validated integration set"
+  },
+  "metrics": [
+    "naive_pr_count",
+    "recommended_pr_count",
+    "pr_reduction_ratio",
+    "boundary_violations",
+    "post_merge_regressions"
+  ],
+  "evidence": [],
+  "decision": null
+}
