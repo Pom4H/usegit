@@ -7,8 +7,11 @@ export function nextExperiment(report) {
     };
   }
 
+  // Array.sort is stable in modern JS. On equal sample counts we preserve
+  // the experiment's declared strategy order instead of introducing an
+  // unrelated lexical preference such as dynamic < fine.
   const target = Object.entries(report.strategies)
-    .sort((a, b) => a[1].samples - b[1].samples || a[0].localeCompare(b[0]))[0];
+    .sort((a, b) => a[1].samples - b[1].samples)[0];
 
   if (target && target[1].samples < 3) {
     return {
