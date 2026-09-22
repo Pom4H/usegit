@@ -1,4 +1,9 @@
-import { supportingEvidenceForTree } from './evidence.mjs';
+import {
+  evidenceIntegrity,
+  evidenceIsAdmissible,
+  evidenceIsPositive,
+  supportingEvidenceForTree,
+} from './evidence.mjs';
 import { git, tryGit } from './git.mjs';
 import { compactWorkOverview, effectiveWorkStatus } from './work-state.mjs';
 
@@ -144,6 +149,20 @@ export function doctorRepository({
     }
 
     for (const [index, evidence] of (work.evidence ?? []).entries()) {
+      const integrity = evidenceIntegrity(evidence);
+      if (!integrity.valid) {
+        issue(errors, 'evidence-integrity-failed', work,
+          'evidence digest does not match its stored payload', {
+            evidenceIndex: index,
+            evidenceId: evidence.id ?? null,
+            expectedDigest: integrity.expected,
+            actualDigest: integrity.actual,
+          });
+      } else if (!evidence.digest) {
+        issue(warnings, 'legacy-evidence-no-digest', work,
+          'legacy evidence has no integrity digest', { evidenceIndex: index });
+      }
+
       if (['observed', 'attested'].includes(evidence.kind)) {
         const tree = evidence.subject?.tree ?? null;
         if (!tree || objectType(cwd, tree) !== 'tree') {
@@ -162,6 +181,13 @@ export function doctorRepository({
         if (!evidence.environmentHash) {
           issue(errors, 'evidence-environment-missing', work,
             'trusted evidence must carry an environment fingerprint', { evidenceIndex: index });
+        }
+        if (evidenceIsPositive(evidence) && !evidenceIsAdmissible(evidence)) {
+          issue(warnings, 'evidence-not-acceptance-grade', work,
+            'positive trusted evidence is contextual but not admissible for acceptance', {
+              evidenceIndex: index,
+              quality: evidence.quality ?? null,
+            });
         }
       }
     }
