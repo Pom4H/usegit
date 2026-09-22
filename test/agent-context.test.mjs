@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   agentContextCriticalFieldRecall,
   agentContextFingerprint,
+  compactNegativeKnowledge,
   renderAgentContext,
 } from '../src/agent-context.mjs';
 
@@ -45,6 +46,13 @@ function fixture() {
       question: 'Can compiled context reduce startup cost?',
       hypothesis: 'Compiled context preserves decision-critical state.',
       status: 'running',
+    }],
+    negativeKnowledge: [{
+      hypothesis: 'retry-without-new-conditions',
+      decision: 'falsified',
+      changeId: 'UG-NEG-0001',
+      experiment: 'EXP-0009',
+      sha: 'aaaaaaaaaaaa',
     }],
     recentCausalHistory: [{
       sha: '1234567890ab',
@@ -89,4 +97,46 @@ test('rendered context preserves every declared decision-critical token', () => 
   assert.match(markdown, /resolve-oldest-experiment/);
   assert.match(markdown, /never source of truth/);
   assert.match(markdown, /usegit:context-fingerprint/);
+});
+
+
+test('negative knowledge expires only when conditions explicitly change', () => {
+  const commits = [
+    {
+      sha: 'new-condition',
+      metadata: {
+        changeId: 'UG-3',
+        experiment: 'EXP-3',
+        hypothesis: 'old-hypothesis',
+        decision: 'pending',
+        conditionsChanged: 'true',
+      },
+    },
+    {
+      sha: 'falsified-old',
+      metadata: {
+        changeId: 'UG-2',
+        experiment: 'EXP-2',
+        hypothesis: 'old-hypothesis',
+        decision: 'falsified',
+      },
+    },
+    {
+      sha: 'rejected-still-active',
+      metadata: {
+        changeId: 'UG-1',
+        experiment: 'EXP-1',
+        hypothesis: 'still-bad',
+        decision: 'rejected',
+      },
+    },
+  ];
+
+  assert.deepEqual(compactNegativeKnowledge(commits), [{
+    hypothesis: 'still-bad',
+    decision: 'rejected',
+    changeId: 'UG-1',
+    experiment: 'EXP-1',
+    sha: 'rejected-sti',
+  }]);
 });

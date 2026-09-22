@@ -211,7 +211,7 @@ try {
   } else if (command === 'agents') {
     const args = parseArgs(process.argv.slice(3));
     const options = {
-      sync: Boolean(args.sync),
+      sync: !args.local,
       remote: args.remote ?? 'origin',
       ...(args.output ? { output: args.output } : {}),
     };

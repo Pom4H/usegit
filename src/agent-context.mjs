@@ -67,7 +67,31 @@ function loadRunningExperiments(dir = 'experiments') {
     }));
 }
 
-export function buildAgentContextModel({ sync = false, remote = 'origin' } = {}) {
+export function compactNegativeKnowledge(commits, limit = 8) {
+  const active = new Map();
+
+  for (const commit of [...commits].reverse()) {
+    const metadata = commit.metadata ?? {};
+    const hypothesis = metadata.hypothesis;
+    if (!hypothesis) continue;
+
+    if (metadata.conditionsChanged === 'true') active.delete(hypothesis);
+
+    if (metadata.decision === 'falsified' || metadata.decision === 'rejected') {
+      active.set(hypothesis, {
+        hypothesis,
+        decision: metadata.decision,
+        changeId: metadata.changeId ?? null,
+        experiment: metadata.experiment ?? null,
+        sha: commit.sha.slice(0, 12),
+      });
+    }
+  }
+
+  return [...active.values()].slice(-limit).reverse();
+}
+
+export function buildAgentContextModel({ sync = true, remote = 'origin' } = {}) {
   const commits = history(40);
   const report = buildReport();
   const work = workStatus({ sync, remote });
@@ -85,6 +109,7 @@ export function buildAgentContextModel({ sync = false, remote = 'origin' } = {})
       conflicts: work.conflicts ?? [],
     },
     experiments: loadRunningExperiments(),
+    negativeKnowledge: compactNegativeKnowledge(commits),
     recentCausalHistory: compactCausalHistory(commits, 8),
     next: nextExperiment(report),
   };
@@ -200,6 +225,13 @@ export function decisionCriticalTokens(model) {
     collectScalarValues(experiment.hypothesis, tokens);
   }
 
+  for (const item of model.negativeKnowledge ?? []) {
+    collectScalarValues(item.hypothesis, tokens);
+    collectScalarValues(item.decision, tokens);
+    collectScalarValues(item.changeId, tokens);
+    collectScalarValues(item.experiment, tokens);
+  }
+
   for (const change of model.recentCausalHistory) {
     collectScalarValues(change.changeId, tokens);
     collectScalarValues(change.experiment, tokens);
@@ -251,6 +283,21 @@ export function renderAgentContext(model) {
   if (model.experiments.length) {
     for (const experiment of model.experiments) {
       lines.push('- **' + experiment.id + '** — ' + printable(experiment.hypothesis));
+    }
+  } else {
+    lines.push('- none');
+  }
+
+  lines.push('', '## Active negative knowledge', '');
+
+  if (model.negativeKnowledge?.length) {
+    for (const item of model.negativeKnowledge) {
+      lines.push(
+        '- ' + TICK + printable(item.changeId) + TICK +
+        ' · ' + printable(item.experiment) +
+        ' · ' + printable(item.decision) +
+        ' — ' + printable(item.hypothesis),
+      );
     }
   } else {
     lines.push('- none');
