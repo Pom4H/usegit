@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - "experiment/**"
+    tags:
+      - "v*"
   pull_request:
 permissions:
   contents: write
