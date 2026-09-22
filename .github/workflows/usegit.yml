@@ -1,0 +1,52 @@
+name: usegit
+
+on:
+  push:
+    branches:
+      - main
+      - "experiment/**"
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run validate
+      - run: npm run report > usegit-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usegit-report
+          path: usegit-report.json
+
+  provenance:
+    if: ${{ always() && github.event_name == 'push' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch existing evidence notes
+        run: git fetch origin refs/notes/usegit:refs/notes/usegit || true
+      - name: Materialize CI evidence
+        env:
+          VALIDATION_RESULT: ${{ needs.validate.result }}
+        run: |
+          git config user.name "usegit[bot]"
+          git config user.email "usegit[bot]@users.noreply.github.com"
+          node src/note.mjs "$GITHUB_SHA" "$VALIDATION_RESULT"
+      - name: Push evidence DAG
+        run: git push origin refs/notes/usegit
