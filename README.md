@@ -12,13 +12,13 @@ npx --yes github:Pom4H/usegit#main init
 
 That adds the small amount of repository state and agent instructions usegit needs. Existing history is left untouched.
 
-After that, a fresh agent starts with a compiled session context:
+After that, a fresh agent starts with a typed decision capsule:
 
 ```bash
-npx --yes github:Pom4H/usegit#main agents
+npx --yes github:Pom4H/usegit#main capsule
 ```
 
-For agent surfaces that can preload a file, `usegit agents --write` materializes the same disposable projection at `.git/usegit/AGENTS.md`. It is never committed or treated as source of truth.
+The capsule contains IDs, Git/tree applicability, evidence provenance, hashes and freshness rules, but does not inline arbitrary repository prose. Fetch a goal, hypothesis or continuation explicitly with `usegit content WORK-* --field ...`; that output is marked untrusted.
 
 ## The idea
 
@@ -62,7 +62,7 @@ The agent can now exit.
 Later, another agent can recover everything from Git:
 
 ```bash
-usegit context
+usegit capsule
 
 usegit resume WORK-1234 \
   --result success \
@@ -130,7 +130,8 @@ There is no separate source-of-truth database.
 ## Useful commands
 
 ```bash
-usegit agents
+usegit capsule
+usegit content WORK-1234 --field goal
 usegit context
 usegit start
 usegit status
@@ -147,6 +148,8 @@ For bounded parallel work:
 usegit batch .usegit/batch.json
 usegit claim-next
 ```
+
+`usegit agents` remains available as a diagnostic projection, but EXP-0014 showed it is unsafe to treat arbitrary repository text as trusted prompt instructions.
 
 For the human-readable projection:
 

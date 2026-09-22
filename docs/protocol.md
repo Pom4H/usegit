@@ -395,3 +395,11 @@ Current tests include:
 - malformed state is detected without unsafe automatic repair.
 
 These tests are part of the protocol definition: behavior that cannot survive crash, race or stale evidence is not durable development state.
+
+### Typed decision capsule
+
+`usegit capsule` is the hardening experiment tracked by `EXP-0015`. Its first adversarial CI run (35743273673) closed all six mechanistic representation failures from EXP-0014, including prompt injection, evidence/applicability collapse, negative-condition collapse, stale-snapshot authority and unbounded WORK selection. It does not inline arbitrary goals, hypotheses, continuations, evidence observations, or other repository prose. The capsule carries typed decision state plus content hashes. Raw text is fetched explicitly with `usegit content WORK-* --field ...` and is labeled untrusted.
+
+The capsule includes WORK base/tree, evidence quality and exact-tree provenance, a non-authoritative snapshot rule, explicit re-sync-before-mutation semantics, non-actionable negative knowledge when conditions are unknown, and a hard WORK selection budget.
+
+The legacy `usegit agents` Markdown projection remains available for diagnostics, but it is no longer the recommended startup interface. EXP-0014 falsified treating it as trusted prompt context.
