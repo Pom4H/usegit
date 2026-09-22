@@ -1,0 +1,28 @@
+{
+  "id": "EXP-0011",
+  "question": "Can the reusable usegit workflow run on repositories that require their own self-hosted runner instead of GitHub-hosted ubuntu-latest?",
+  "hypothesis": "Making the reusable runner label an explicit workflow input and using bash for run steps will preserve the same causal validation/evidence behavior on both ubuntu-latest and Windows self-hosted runners.",
+  "status": "running",
+  "conditions": {
+    "discoveryRepository": "Pom4H/game-engine",
+    "failedRunId": 35699590334,
+    "observedRunnerId": 0,
+    "requiredRunner": "self-hosted",
+    "targetOS": "Windows"
+  },
+  "metrics": [
+    "reusable_workflow_start_success",
+    "causal_validation_success",
+    "report_generation_success",
+    "git_note_materialized"
+  ],
+  "evidence": [
+    {
+      "kind": "cross-project-adoption",
+      "repository": "Pom4H/game-engine",
+      "runId": 35699590334,
+      "observation": "Reusable workflow failed before its first step because ubuntu-latest was unavailable; job reported runner_id 0."
+    }
+  ],
+  "decision": null
+}

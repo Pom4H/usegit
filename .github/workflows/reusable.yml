@@ -8,10 +8,18 @@ on:
         required: false
         type: string
         default: main
+      runs_on:
+        description: GitHub Actions runner label for the target repository
+        required: false
+        type: string
+        default: ubuntu-latest
 
 jobs:
   causal-history:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
