@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>usegit — a Git-native runtime for autonomous engineering</title>
-  <meta name="description" content="usegit makes the repository own durable work, agent coordination, evidence and the next safe action.">
+  <title>usegit — keep AI coding work in Git</title>
+  <meta name="description" content="usegit keeps AI coding work, evidence and decisions in Git so agents can stop, resume and coordinate without losing the process.">
   <meta name="theme-color" content="#f4f1e8">
-  <meta property="og:title" content="usegit — the repository runs the engineering process">
-  <meta property="og:description" content="Durable work, safe parallel agents and evidence-gated decisions — stored in Git.">
+  <meta property="og:title" content="usegit — keep AI coding work in Git">
+  <meta property="og:description" content="Agents can stop. The repository keeps the work, evidence and next safe action.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://pom4h.github.io/usegit/">
   <link rel="canonical" href="https://pom4h.github.io/usegit/">
@@ -17,8 +17,8 @@
   <header class="topbar wrap">
     <a class="logo" href="#top">usegit <small>v0.1.0</small></a>
     <nav>
-      <a href="#runtime">Runtime</a>
-      <a href="#learning">Learning</a>
+      <a href="#runtime">How it works</a>
+      <a href="#evidence">Evidence</a>
       <a href="#install">Install</a>
       <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub ↗</a>
     </nav>
@@ -27,12 +27,12 @@
   <main id="top">
     <section class="hero wrap">
       <div class="hero-copy">
-        <p class="kicker">Git-native runtime for autonomous engineering</p>
-        <h1>The model owns<br>the next decision.</h1>
-        <p class="hero-rule">The repository owns everything else.</p>
+        <p class="kicker">Git-native state for AI coding agents</p>
+        <h1>Agents can stop.<br>Work keeps going.</h1>
+        <p class="hero-rule">The repository owns the process.</p>
         <p class="lede">
-          usegit keeps work, ownership, waits, evidence and decisions in Git,
-          so development can continue across agents and context windows without losing the process.
+          usegit keeps work, evidence and decisions in Git,
+          so a fresh agent can continue without reconstructing the project from chat.
         </p>
         <div class="actions">
           <a class="button primary" href="#install">Try usegit</a>
@@ -40,38 +40,38 @@
         </div>
       </div>
 
-      <div class="runtime-card" aria-label="usegit runtime flow">
+      <div class="runtime-card" aria-label="usegit handoff flow">
         <div class="runtime-head">
           <span>repository state</span>
           <code>usegit context</code>
         </div>
         <div class="runtime-flow">
           <div class="node control">
-            <small>CONTROL</small>
-            <strong>What should we test?</strong>
-            <span>uncertainty · architecture · conflicts</span>
+            <small>1 · START</small>
+            <strong>Define the change</strong>
+            <span>goal · hypothesis</span>
           </div>
           <i>↓</i>
           <div class="node ready">
-            <small>READY WORK</small>
-            <strong>Objective contract</strong>
-            <span>scope · success · evidence plan</span>
+            <small>2 · WORK</small>
+            <strong>Agent implements it</strong>
+            <span>state is persisted in Git</span>
           </div>
           <i>↓</i>
           <div class="node worker">
-            <small>WORKER</small>
-            <strong>Execute bounded change</strong>
-            <span>claim-next · lease · CAS</span>
+            <small>3 · WAIT</small>
+            <strong>CI runs. Agent can exit.</strong>
+            <span>continuation stays durable</span>
           </div>
           <div class="fork">
-            <span>await external event</span>
-            <b>or</b>
-            <span>record evidence</span>
+            <span>fresh agent</span>
+            <b>+</b>
+            <span>same repository</span>
           </div>
           <div class="node accepted">
-            <small>DECISION</small>
-            <strong>accepted · rejected · falsified</strong>
-            <span>exact tree + trusted evidence</span>
+            <small>4 · RESUME</small>
+            <strong>Read evidence. Continue.</strong>
+            <span>accept only the exact tested tree</span>
           </div>
         </div>
       </div>
@@ -80,60 +80,55 @@
     <section class="statement">
       <div class="wrap statement-inner">
         <p class="kicker">The problem</p>
-        <h2>Today the process lives inside the agent invocation.</h2>
+        <h2>Chat should not be process state.</h2>
         <p>
-          When the invocation ends, someone has to reconstruct what was in progress,
-          what is safe to run next, which CI result still applies, and whether a decision was actually validated.
-          usegit moves that state into the repository.
+          When an agent stops, the repository should still know what was in progress,
+          what it was trying to prove, what CI observed, and what is safe to do next.
         </p>
       </div>
     </section>
 
     <section class="section wrap" id="runtime">
       <div class="section-title">
-        <p class="kicker">What the code actually does</p>
-        <h2>The repo becomes a small development runtime.</h2>
+        <p class="kicker">Small by default</p>
+        <h2>Start simple. Add coordination only when you need it.</h2>
       </div>
 
       <div class="capabilities">
         <article>
           <span>01</span>
-          <h3>Work survives the agent.</h3>
+          <h3>Work survives the chat.</h3>
           <p>
-            A task can become <code>awaiting</code>, release its lease, and store success/failure continuations.
-            A fresh agent resumes it later from Git alone.
+            A WORK can wait for CI, release ownership, and be resumed later by a fresh agent from Git alone.
           </p>
-          <footer><code>refs/usegit/work/*</code></footer>
+          <footer><code>start · await · context · resume</code></footer>
         </article>
 
         <article>
           <span>02</span>
-          <h3>Parallel work fails safe.</h3>
+          <h3>The next agent knows what happened.</h3>
           <p>
-            File scopes, semantic resources, dependencies and compare-and-swap refs prevent silent double ownership
-            and surface collisions before workers overlap.
+            Hypotheses, failed attempts, evidence and decisions stay connected instead of disappearing with the conversation.
+          </p>
+          <footer><code>hypothesis → evidence → decision</code></footer>
+        </article>
+
+        <article>
+          <span>03</span>
+          <h3>Parallel work can fail safe.</h3>
+          <p>
+            When you need multiple workers, leases, scopes and Git compare-and-swap prevent silent double ownership.
           </p>
           <footer><code>claim-next · scopes · resources</code></footer>
         </article>
 
         <article>
-          <span>03</span>
-          <h3>Cheap work stays cheap.</h3>
-          <p>
-            Low uncertainty + objective oracle + explicit success/evidence contract can enter the worker queue.
-            Architecture and ambiguity stay in control.
-          </p>
-          <footer><code>workerReady[] / controlQueue[]</code></footer>
-        </article>
-
-        <article>
           <span>04</span>
-          <h3>Evidence has a subject.</h3>
+          <h3>Green is not enough.</h3>
           <p>
-            Observed and attested evidence names its source, environment and exact Git tree.
-            Change the tree and acceptance requires revalidation.
+            Evidence belongs to an exact Git tree. Retry passes stay distinguishable from clean passes, and tampered evidence fails closed.
           </p>
-          <footer><code>tree-exact acceptance</code></footer>
+          <footer><code>tree-exact evidence</code></footer>
         </article>
       </div>
     </section>
@@ -142,32 +137,24 @@
       <div class="wrap terminal-grid">
         <div>
           <p class="kicker">A handoff without chat history</p>
-          <h2>Stop at CI.<br>Continue tomorrow.</h2>
+          <h2>Stop at CI.<br>Continue later.</h2>
           <p>
-            No polling agent needs to stay alive. The continuation is durable,
-            and the next invocation starts by asking the repository what exists.
+            You do not need a polling agent to stay alive.
+            Persist the wait, let the invocation end, and resume from the repository.
           </p>
         </div>
 
         <pre><code><span>$</span> usegit start \
   --goal "reduce renderer cost" \
-  --hypothesis "cache probe visibility" \
-  --scope "src/render/**,test/render/**" \
-  --success "p95 improves >= 0.5 ms" \
-  --evidence-plan "GPU CI benchmark" \
-  --uncertainty low \
-  --oracle objective
+  --hypothesis "cache probe visibility"
 
-→ WORK-A12F · ready
-
-<span>$</span> usegit claim-next
 → WORK-A12F · active
 
 <span>$</span> usegit await WORK-A12F \
-  --event ci:gpu-benchmark \
-  --on-success "accept if metric passes"
+  --event ci:test \
+  --on-success "finish if valid"
 
-→ awaiting · lease released
+→ awaiting · agent can exit
 
 # later, from a fresh invocation
 
@@ -176,7 +163,7 @@
 
 <span>$</span> usegit resume WORK-A12F \
   --result success \
-  --evidence "p95 improved 0.8 ms" \
+  --evidence "tests passed" \
   --evidence-kind observed \
   --evidence-source "github-actions:412"
 
@@ -184,56 +171,54 @@
       </div>
     </section>
 
-    <section class="section wrap" id="learning">
+    <section class="section wrap" id="evidence">
       <div class="learning-grid">
         <div class="section-title">
-          <p class="kicker">Why this becomes self-learning</p>
-          <h2>The next decision starts from the last result.</h2>
+          <p class="kicker">Evidence that means something</p>
+          <h2>A result only proves the code it actually tested.</h2>
         </div>
 
         <div class="learning-copy">
           <p>
-            usegit does not train model weights. It makes development outcomes reusable.
-            Accepted, rejected and falsified hypotheses remain in the repository,
-            causal history is compressed into a small context packet, and <code>usegit next</code>
-            chooses the next unresolved experiment from accumulated state.
+            usegit records the source and exact Git tree for observed evidence.
+            Change the tree and the old result no longer accepts the new code.
           </p>
           <p>
-            The practical effect is simple: the system can deepen the domain only when uncertainty appears,
-            while avoiding hypotheses that were already falsified under the same conditions.
+            A clean first pass, a retry pass and an agent saying “looks good” are different facts.
+            usegit keeps them different.
           </p>
         </div>
       </div>
 
       <div class="learning-loop">
-        <div><small>1</small><strong>uncertainty</strong></div>
+        <div><small>1</small><strong>change</strong></div>
         <i>→</i>
-        <div><small>2</small><strong>hypothesis</strong></div>
+        <div><small>2</small><strong>exact tree</strong></div>
         <i>→</i>
-        <div><small>3</small><strong>evidence</strong></div>
+        <div><small>3</small><strong>observation</strong></div>
         <i>→</i>
         <div><small>4</small><strong>decision</strong></div>
         <i>→</i>
-        <div class="knowledge"><small>5</small><strong>repository knowledge</strong></div>
+        <div class="knowledge"><small>5</small><strong>durable knowledge</strong></div>
       </div>
     </section>
 
     <section class="gate-section">
       <div class="wrap gate-grid">
         <div>
-          <p class="kicker">Architecture stays gated</p>
-          <h2>Not every decision belongs to a worker.</h2>
+          <p class="kicker">Only when you need more</p>
+          <h2>Scale from one agent to many without changing the model.</h2>
         </div>
         <div class="gate-copy">
           <p>
-            In the current routing policy, architecture decisions are an explicit blocker for automatic worker execution.
-            They stay in the control lane until a human or deeper reasoning process defines the contract and evidence.
+            The same WORK state can later add scopes, dependencies, semantic resources and a worker queue.
+            The basic workflow stays the same: work, evidence, decision.
           </p>
           <div class="route">
-            <span>ordinary bounded change</span><b>→ worker</b>
-            <span>architecture decision</span><b>→ control</b>
-            <span>conflicting evidence</span><b>→ control</b>
-            <span>repeated failure</span><b>→ control</b>
+            <span>single agent</span><b>start → await → resume</b>
+            <span>parallel agents</span><b>scopes + leases</b>
+            <span>bounded worker pool</span><b>claim-next</b>
+            <span>ambiguous decision</span><b>keep in control</b>
           </div>
         </div>
       </div>
@@ -241,11 +226,11 @@
 
     <section class="install wrap" id="install">
       <div>
-        <p class="kicker">Adopt it without changing your stack</p>
-        <h2>One bootstrap commit.</h2>
+        <p class="kicker">One bootstrap command</p>
+        <h2>Use it in an existing repo.</h2>
         <p>
-          Existing history is left untouched. usegit installs repository config,
-          agent instructions and reusable causal CI.
+          No framework migration and no separate source-of-truth service.
+          Existing Git history stays untouched.
         </p>
       </div>
       <pre><code>npx --yes github:Pom4H/usegit#main init</code></pre>
@@ -254,7 +239,7 @@
 
   <footer class="footer wrap">
     <span class="logo">usegit</span>
-    <p>Git-native runtime for autonomous engineering.</p>
+    <p>Keep AI coding work in Git.</p>
     <div>
       <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source ↗</a>
       <a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT</a>

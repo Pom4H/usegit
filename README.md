@@ -1,305 +1,175 @@
 # usegit
 
-`usegit` is infrastructure for **self-learning software systems**.
+`usegit` keeps AI coding work in Git.
 
-The system starts with the smallest domain model that is sufficient to act. When uncertainty blocks progress, it can deepen that part of the domain through a falsifiable experiment, persist the resulting knowledge in Git, and require evidence before crossing an architectural boundary.
+Agents can stop, resume, coordinate, and only accept changes that have evidence for the exact code that was tested. The conversation can disappear; the repository keeps the process.
 
-This is learning at the software-system level, not model-weight training. Intent, hypotheses, work state, observations and decisions accumulate in the repository so later agents can operate from what the system has already learned instead of reconstructing it from chat.
-
-## Learning loop
-
-```text
-work
-  |
-  v
-uncertainty ---- no ----> bounded execution
-  |
- yes
-  v
-experiment -> evidence -> decision
-                         |
-                         v
-                 architecture gate
-                         |
-                  pass / reject
-                         |
-                         v
-                  updated domain
-```
-
-Domain knowledge is deepened **on demand**. Low-uncertainty work stays cheap and executable. Architecture decisions, conflicting evidence and missing oracles move into deeper control. Accepted, rejected and falsified results become durable negative or positive knowledge.
-
-Architecture is treated as a gated state transition rather than an opinion in a conversation. A gate declares the decision boundary, defines success and an evidence plan, collects trusted evidence for the exact Git tree, and only then records the architectural decision.
-
-The repository dogfoods this model. Meaningful changes carry machine-readable causal metadata, CI materializes evidence into Git notes, live work is persisted under Git refs, and the CLI reconstructs what was tried, what is still running, what is awaiting external evidence, what the system has learned, and what should happen next.
-
-## Adopt it in an existing repository
-
-No language, framework or package-manager migration is required.
+## Start in one command
 
 ```bash
 npx --yes github:Pom4H/usegit#main init
-git add .usegit AGENTS.md experiments/README.md .github/workflows/usegit-causal.yml
-git commit -m "chore: adopt usegit"
 ```
 
-That commit is the **bootstrap boundary**. Existing history stays untouched. Starting with the following non-merge commit, CI requires the causal trailers.
+That adds the small amount of repository state and agent instructions usegit needs. Existing history is left untouched.
 
-`init` is idempotent and intentionally narrow. It preserves repository-specific `AGENTS.md` content outside a managed marker block, configures Git notes rewrite behavior, adds commit-boundary and integration examples, and installs a small caller workflow for the reusable usegit CI.
-
-The generated agent protocol also enables the durable `WORK-*` lifecycle already built into usegit: agents inspect existing work before starting, claim leases, persist continuations before waiting, and can resume from Git without relying on chat history.
-
-The target project does not need to add usegit as a dependency:
+After that, a fresh agent starts with:
 
 ```bash
 npx --yes github:Pom4H/usegit#main context
-npx --yes github:Pom4H/usegit#main start --goal "..." --hypothesis "..." --experiment EXP-0001
-npx --yes github:Pom4H/usegit#main await WORK-... --event ci:test
-npx --yes github:Pom4H/usegit#main resume WORK-... --result success --evidence "..."
-npx --yes github:Pom4H/usegit#main next
-npx --yes github:Pom4H/usegit#main boundary -- .usegit/plan.json
-npx --yes github:Pom4H/usegit#main integration -- .usegit/integration.json
 ```
 
-## Human view
+## The idea
 
-Git is the machine-readable memory, not the UI humans should have to read.
+Git already remembers **what the code became**.
+
+usegit adds enough state to remember:
+
+- what is being worked on;
+- who owns the next decision;
+- what the change is trying to prove;
+- what evidence exists;
+- whether that evidence still applies;
+- what should happen next.
+
+```text
+intent -> hypothesis -> WORK -> change -> evidence -> decision
+```
+
+Git remains the source of truth.
+
+## Work survives the agent
+
+Start a piece of work:
+
+```bash
+usegit start \
+  --goal "reduce renderer cost" \
+  --hypothesis "cache probe visibility"
+```
+
+Before waiting on CI or another external event:
+
+```bash
+usegit await WORK-1234 \
+  --event ci:test \
+  --on-success "finish if the result is still valid"
+```
+
+The agent can now exit.
+
+Later, another agent can recover everything from Git:
+
+```bash
+usegit context
+
+usegit resume WORK-1234 \
+  --result success \
+  --evidence "tests passed" \
+  --evidence-kind observed \
+  --evidence-source "github-actions:412"
+```
+
+No chat history is required.
+
+## Evidence belongs to exact code
+
+A green result is not treated as a vague project-wide fact.
+
+```text
+tree A -- tested --> evidence for tree A
+
+tree A
+  |
+  +-- code changes
+  v
+tree B -- old evidence no longer accepts this tree
+```
+
+For acceptance, usegit requires trusted positive evidence for the exact Git tree being accepted.
+
+Evidence also records quality:
+
+```text
+first-pass          may support acceptance
+manual-attestation  may support acceptance
+retry-pass          context only
+flaky               context only
+tampered            rejected
+```
+
+New evidence has a stable `EV-*` identity and integrity digest. Duplicate delivery is idempotent.
+
+## Parallel agents fail safe
+
+When more than one agent is working, usegit can coordinate them with:
+
+- expiring leases;
+- compare-and-swap Git ref updates;
+- file scopes;
+- semantic read/write resources;
+- dependencies;
+- a derived worker queue.
+
+Two workers can race for the same WORK, but only one durable owner is allowed.
+
+You do not need any of this to get started. It becomes useful when the repository starts running multiple pieces of work in parallel.
+
+## Where the state lives
+
+```text
+normal commits            code + causal trailers
+refs/usegit/work/*        durable WORK state
+refs/notes/usegit         CI / observed evidence
+experiments/              durable experiment records
+```
+
+There is no separate source-of-truth database.
+
+## Useful commands
+
+```bash
+usegit context
+usegit start
+usegit status
+usegit await
+usegit resume
+usegit evidence
+usegit finish
+usegit doctor
+```
+
+For bounded parallel work:
+
+```bash
+usegit batch .usegit/batch.json
+usegit claim-next
+```
+
+For the human-readable projection:
 
 ```bash
 usegit view --output usegit.html
 ```
 
-This produces one dependency-free interactive HTML file from the existing causal state. The primary navigation is **Change → Hypothesis → Experiment → Evidence → Decision**; commit SHA and granularity remain visible only as provenance.
+## What is enforced today
 
-In ChatGPT, the intended request is simply: **“Show this repository as an interactive usegit HTML view.”** An agent following `AGENTS.md` should return the same disposable projection instead of summarizing raw commit history.
+The repository dogfoods the protocol in CI. Current invariants include:
 
-Use `usegit view --model` when another UI surface wants the projection model without the HTML renderer.
+- asserted evidence cannot accept a change;
+- evidence becomes stale when the Git tree changes;
+- retry passes are not silently promoted to clean passes;
+- tampered evidence fails closed;
+- duplicate evidence delivery stays single;
+- two workers racing a claim end with one owner;
+- an awaiting WORK can be resumed from a fresh clone after the original process and checkout disappear;
+- semantic conflicts can block otherwise disjoint file changes.
 
-## Model
+## Go deeper
 
-```text
-intent -> hypothesis -> WORK -> change -> evidence -> decision
-                         |        |
-                         |        +-> Git commit + trailers
-                         +----------> refs/usegit/work/*
+The README is intentionally the short path.
 
-CI evidence -------------------------------> refs/notes/usegit
+- [Protocol](docs/protocol.md) — state model, evidence, scheduling and recovery
+- [Agent rules](AGENTS.md) — how agents should operate in a usegit repository
+- [Experiments](experiments/) — hypotheses and evidence from usegit dogfooding itself
 
-accepted compatible work -> integration policy -> direct merge
-                                                -> optional PR boundary
-```
-
-Git remains the source of truth. Files under `experiments/` hold durable experiment definitions; commit trailers bind code changes to those experiments; `refs/notes/usegit` carries CI observations; `refs/usegit/work/*` carries small live execution states without dirtying the project tree.
-
-## Durable work
-
-A model invocation must not be the owner of process state. It owns only the next decision.
-
-Start a work unit before implementation:
-
-```bash
-export USEGIT_AGENT_ID=chatgpt-a
-
-usegit start \
-  --goal "reduce reality gap below 0.05" \
-  --hypothesis "contact shadows improve similarity" \
-  --experiment EXP-0017 \
-  --scope "src/render/**,test/render/**" \
-  --resource-write "renderer.lighting" \
-  --resource-read "metric.reality-gap,gpu.frame-budget"
-```
-
-Scopes are exact paths, `path/**` subtrees, or `**`. `usegit status` reports active scope overlaps (and undeclared scopes) so agents can avoid competing for the same causal surface before editing. The returned `WORK-*` ref has an expiring lease. Before waiting on CI or another external event, persist a continuation and release the lease:
-
-```bash
-usegit await WORK-1234ABCD \
-  --event ci:gpu-render \
-  --on-success "combine with material experiment" \
-  --on-failure "inspect gpu trace"
-```
-
-The invocation can now end. A later agent begins with:
-
-```bash
-usegit context
-```
-
-and sees the awaiting work. When evidence arrives, a fresh invocation can claim it:
-
-```bash
-export USEGIT_AGENT_ID=chatgpt-b
-
-usegit resume WORK-1234ABCD \
-  --result success \
-  --evidence "reality gap 0.091 -> 0.074" \
-  --evidence-kind observed \
-  --evidence-source "github-actions:123456"
-```
-
-The selected continuation is returned with a new lease. Active work whose lease expires is surfaced as `stale` and can be reclaimed. Ref updates use compare-and-swap semantics, so concurrent agents cannot silently overwrite the same work state.
-
-Finish only after evidence supports a decision. `accepted` is deliberately strict: usegit requires successful `observed` or `attested` evidence for the exact Git tree being accepted.
-
-```bash
-usegit evidence WORK-1234ABCD \
-  --kind observed \
-  --source "gpu-ci:123456" \
-  --result success \
-  --observation "quality improved within GPU budget"
-
-usegit finish WORK-1234ABCD \
-  --decision accepted \
-  --summary "quality improved within GPU budget"
-```
-
-If the tree changes after evidence was recorded, acceptance fails until that new tree is revalidated. Agent-written `asserted` evidence remains useful context, but cannot by itself accept work.
-
-## Control plane and worker plane
-
-A control invocation decides **what is worth testing**. Cheap workers execute only bounded WORK whose contract is explicit enough to be checked mechanically.
-
-A WORK is automatically routed to the worker queue only when all of these are true:
-
-- uncertainty is `low`;
-- the oracle is `objective`;
-- `--success` defines the acceptance condition;
-- `--evidence-plan` defines how the condition will be observed;
-- no architecture decision or evidence conflict is declared;
-- fewer than three attempts have already failed.
-
-Example from a control thread:
-
-```bash
-usegit start \
-  --goal "reduce renderer frame cost" \
-  --hypothesis "cache probe visibility" \
-  --scope "src/render/**,test/render/**" \
-  --success "p95 frame time improves by >= 0.5 ms with no quality regression" \
-  --evidence-plan "deterministic GPU CI benchmark + reference metric" \
-  --uncertainty low \
-  --oracle objective
-```
-
-Because the contract is execution-ready, the WORK is persisted as `ready` **without a lease**. A stateless worker can then run:
-
-```bash
-usegit context
-usegit claim-next
-```
-
-`context.work.workerReady` is the cheap execution queue. `context.work.controlQueue` contains ambiguous or escalated decisions for a deeper control thread.
-
-If a worker encounters something outside its contract, it does not improvise architecture:
-
-```bash
-usegit escalate WORK-... --reason "evidence contradicts the architecture assumption"
-```
-
-That releases the worker lease and moves the WORK to deep control. `usegit route` can preview the routing decision before a WORK is created.
-
-## Batch planning and self-service workers
-
-The control thread can fan one decision out into many durable tasks with a JSON plan:
-
-```bash
-usegit batch .usegit/batch.json
-```
-
-A batch can contain up to 100 WORK items with priorities and dependencies. Re-running the same batch is idempotent when the specifications are unchanged, so a partially interrupted batch can be safely retried.
-
-The queue does not expose every `ready` task at once. It computes a deterministic scope-safe independent set:
-
-```text
-30 planned WORK
-       |
-       +-- dependencies not satisfied --> queueBlocked
-       +-- overlaps active/awaiting ----> queueBlocked
-       +-- overlaps higher-priority ready WORK -> queueBlocked
-       |
-       v
-  workerReady
-```
-
-This matters when many worker chats start at the same time: tasks simultaneously visible in `workerReady` do not overlap declared scopes.
-
-A disposable worker does not need a task ID:
-
-```bash
-usegit context
-usegit claim-next
-```
-
-`claim-next` takes the highest-priority dispatchable WORK. The Git ref update is compare-and-swap; if multiple workers race for the same first item, only one publishes the claim and the others retry against the updated queue.
-
-Dependencies unblock automatically after predecessor WORK reaches `accepted`. Awaiting, active, escalated and stale work continue to reserve their scopes, so waiting for CI does not accidentally let another worker modify the same causal surface.
-
-## Semantic resources, evidence provenance, and doctor
-
-File scopes prevent obvious edit collisions, but two changes in different files can still compete for the same system invariant. WORK may therefore declare hierarchical semantic resources with read/write access:
-
-```text
-WORK-A
-  files:     src/render/shadows/**
-  write:     renderer.lighting
-  read:      metric.reality-gap
-             gpu.frame-budget
-
-WORK-B
-  files:     src/materials/**
-  read:      renderer.lighting
-```
-
-The files do not overlap, but the semantic write/read pair does, so the scheduler will not expose both as concurrently safe. Read/read claims remain parallel.
-
-Evidence has three trust levels:
-
-```text
-asserted   agent statement; context only
-observed   runner/tool observation with source + exact Git tree
-attested   trusted external/human decision with source + exact Git tree
-```
-
-Observed and attested records include commit, tree, environment snapshot and environment fingerprint. A positive acceptance decision must match the exact evidence tree.
-
-Run the consistency checker at any time:
-
-```bash
-usegit doctor
-usegit doctor --repair
-```
-
-`doctor` checks malformed WORK refs, impossible lease/state combinations, missing dependencies, diverged bases, semantic collisions, broken evidence object references and accepted work without matching trusted evidence. It is read-only by default. `--repair` only performs safe synchronization of remote WORK refs and evidence notes; it never invents a decision or steals a lease.
-
-## Pull requests are not work items
-
-A task, agent, branch or experiment does not automatically deserve a pull request. Work remains in the causal graph until it has accepted evidence and can be grouped into a compatible integration set.
-
-`usegit integration` answers whether that set can be integrated directly or whether a real boundary requires one PR for the entire set. Current explicit boundaries are human review, protected targets, releases and external contributors.
-
-## Commit granularity
-
-We deliberately compare three policies instead of hard-coding one:
-
-- `coarse`: one whole experiment per commit;
-- `fine`: one artifact or narrow implementation step per commit;
-- `dynamic`: one falsifiable causal unit per commit, independent of file count.
-
-The current hypothesis is that `dynamic` will preserve intent and revert precision without producing the coordination overhead of tiny commits. It is intentionally provisional.
-
-## Usage
-
-```bash
-npm test
-npm run init
-npm run context
-npm run status
-npm run doctor
-npm run report
-npm run next
-npm run boundary -- .usegit/plan.json
-npm run integration -- .usegit/integration.example.json
-```
-
-`context` is the first command an agent runs after entering a repository. It returns compact causal history plus active, awaiting, stale and completed work. `next` turns accumulated history back into an experiment candidate. `integration` derives PR creation from a real integration boundary instead of task count.
-
-See `AGENTS.md` and `docs/protocol.md` before changing this repository.
+MIT.
