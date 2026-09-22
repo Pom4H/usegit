@@ -20,14 +20,27 @@ function loadExperiments(dir = 'experiments') {
     .map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
 }
 
+export function latestRevisionPerChange(samples) {
+  const unique = new Map();
+  // history() is newest first, so the first SHA for a Change ID is its
+  // current revision. Older revisions remain history/evidence but do not
+  // become additional granularity samples.
+  for (const sample of samples) {
+    const id = sample.metadata?.changeId;
+    if (id && !unique.has(id)) unique.set(id, sample);
+  }
+  return [...unique.values()];
+}
+
 export function buildReport() {
   const commits = history();
   const structured = commits.filter((c) => c.metadata.changeId);
-  const samples = structured.map((commit) => ({ ...commit, stats: commitStats(commit.sha) }));
+  const revisions = structured.map((commit) => ({ ...commit, stats: commitStats(commit.sha) }));
+  const changes = latestRevisionPerChange(revisions);
 
   const strategyNames = ['coarse', 'fine', 'dynamic'];
   const strategies = Object.fromEntries(strategyNames.map((name) => {
-    const xs = samples.filter((x) => x.metadata.granularity === name);
+    const xs = changes.filter((x) => x.metadata.granularity === name);
     const experiments = new Set(xs.map((x) => x.metadata.experiment).filter(Boolean));
     return [name, {
       samples: xs.length,
@@ -56,6 +69,7 @@ export function buildReport() {
     generatedFrom: commits[0]?.sha ?? null,
     structuredCommitCoverage: Number(coverage.toFixed(4)),
     structuredCommits: structured.length,
+    uniqueChanges: changes.length,
     unresolvedExperiments: experiments.filter((x) => x.status === 'running').map((x) => x.id),
     repeatedFalsifiedHypotheses: repeated,
     repeatedFalsifiedHypothesisCount: repeated.length,
