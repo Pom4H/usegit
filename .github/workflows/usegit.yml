@@ -47,20 +47,33 @@ jobs:
           test "$expected" = "$(git rev-parse blind-b^{tree})"
           test "$expected" = "$(git rev-parse blind-c^{tree})"
           test "$expected" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
-      - name: Build isolated Git bundles
+      - name: Build isolated replay fixtures
         run: |
           mkdir -p blind-replay
           for alias in a b c; do
             bare="/tmp/usegit-${alias}.git"
+            workspace="/tmp/usegit-${alias}"
             git init --bare "$bare"
             git push "$bare" "refs/heads/blind-${alias}:refs/heads/main"
+            git -C "$bare" symbolic-ref HEAD refs/heads/main
+
             git -C "$bare" bundle create "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.bundle" main
             git -C "$bare" bundle verify "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.bundle"
+
+            git clone --quiet "$bare" "$workspace"
+            git -C "$workspace" remote remove origin
+            test "$(git -C "$workspace" branch --show-current)" = "main"
+            test -z "$(git -C "$workspace" remote)"
+            test "$(git -C "$workspace" rev-parse HEAD^{tree})" = "8aaf353048cfa4f516c288459a3cd80ffed1deea"
+
+            tar -C "$workspace" -czf "$GITHUB_WORKSPACE/blind-replay/granularity-${alias}.tar.gz" .
           done
       - uses: actions/upload-artifact@v4
         with:
           name: granularity-blind-replay
-          path: blind-replay/*.bundle
+          path: |
+            blind-replay/*.bundle
+            blind-replay/*.tar.gz
 
   provenance:
     if: ${{ always() && github.event_name == 'push' }}
