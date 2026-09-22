@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>usegit — infrastructure for self-learning software systems</title>
-  <meta name="description" content="usegit lets software systems deepen their domain model when uncertainty appears, preserve experiments as durable knowledge, and gate architectural decisions on evidence.">
-  <meta name="theme-color" content="#f4f1e9">
-  <meta property="og:title" content="usegit — systems that learn through Git">
-  <meta property="og:description" content="Progressive domain learning and evidence-gated architecture for AI-native software systems.">
+  <title>usegit — software that learns from every change</title>
+  <meta name="description" content="usegit stores hypotheses, evidence and decisions in Git so software systems can learn from development instead of repeating it.">
+  <meta name="theme-color" content="#f5f2ea">
+  <meta property="og:title" content="usegit — software that learns from every change">
+  <meta property="og:description" content="Test. Remember. Gate architecture with evidence.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://pom4h.github.io/usegit/">
   <link rel="canonical" href="https://pom4h.github.io/usegit/">
@@ -17,8 +17,7 @@
   <header class="header wrap">
     <a class="brand" href="#top">usegit <span>v0.1.0</span></a>
     <nav>
-      <a href="#learning">Learning loop</a>
-      <a href="#gates">Architecture gates</a>
+      <a href="#how">How it works</a>
       <a href="#install">Install</a>
       <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub ↗</a>
     </nav>
@@ -26,211 +25,98 @@
 
   <main id="top">
     <section class="hero wrap">
-      <p class="eyebrow">Git substrate for self-learning systems</p>
-      <h1>Let the system learn<br>the domain <em>when it needs to.</em></h1>
+      <p class="eyebrow">Git for self-learning software</p>
+      <h1>Software should learn<br>from every change.</h1>
       <p class="lead">
-        usegit turns development into a persistent learning loop. The system starts with the model it has,
-        deepens the domain only when uncertainty blocks progress, stores experiments as durable knowledge,
-        and crosses architectural boundaries only when evidence satisfies an explicit gate.
+        usegit keeps the hypothesis, the evidence and the decision in Git.
+        Future agents can reuse what the system already learned instead of repeating the same reasoning.
       </p>
-      <div class="hero-actions">
-        <a class="button primary" href="#install">Adopt in a repository</a>
-        <a class="button" href="https://github.com/Pom4H/usegit/blob/main/docs/protocol.md" target="_blank" rel="noreferrer">Read the protocol ↗</a>
+      <div class="actions">
+        <a class="button primary" href="#install">Try usegit</a>
+        <a class="button" href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">View source ↗</a>
       </div>
 
-      <div class="loop" aria-label="Learning loop">
-        <span>work</span><i>→</i>
-        <span>uncertainty</span><i>→</i>
-        <span>experiment</span><i>→</i>
-        <span>evidence</span><i>→</i>
-        <span class="gate">gate</span><i>→</i>
-        <span>new architecture</span>
+      <div class="one-line" aria-label="usegit learning loop">
+        <span>try</span><i>→</i><span>observe</span><i>→</i><span>remember</span><i>→</i><span class="gate">gate</span>
       </div>
     </section>
 
-    <section class="thesis">
-      <div class="wrap split">
+    <section class="section wrap" id="how">
+      <p class="eyebrow">How it works</p>
+      <div class="cards">
+        <article>
+          <span>01</span>
+          <h2>Try a hypothesis.</h2>
+          <p>When the system is unsure, turn that uncertainty into a bounded experiment.</p>
+        </article>
+
+        <article>
+          <span>02</span>
+          <h2>Remember the result.</h2>
+          <p>Keep what worked, what failed and why directly in the repository.</p>
+        </article>
+
+        <article>
+          <span>03</span>
+          <h2>Gate architecture.</h2>
+          <p>Important architectural changes move forward only when the required evidence exists.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="example">
+      <div class="wrap example-grid">
         <div>
-          <p class="eyebrow">The idea</p>
-          <h2>Do not model the whole domain up front.</h2>
-        </div>
-        <div class="copy">
+          <p class="eyebrow">One concrete example</p>
+          <h2>Should we change the storage architecture?</h2>
           <p>
-            A self-learning software system should not require a complete ontology before it can act.
-            It should operate with the smallest useful model, notice where that model stops being sufficient,
-            and create a focused learning loop exactly there.
-          </p>
-          <p>
-            In usegit, that loop is visible in the repository: intent, hypothesis, work, evidence and decision
-            survive individual model invocations. The next agent inherits the accumulated domain knowledge
-            instead of rediscovering it from chat.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section wrap" id="learning">
-      <div class="section-head">
-        <p class="eyebrow">Progressive domain deepening</p>
-        <h2>Learn only at the edge of uncertainty.</h2>
-        <p>
-          Cheap execution continues while the contract is clear. Ambiguity is escalated into a bounded experiment.
-          Once the evidence changes what the system knows, that result becomes part of the repository.
-        </p>
-      </div>
-
-      <div class="steps">
-        <article>
-          <b>01</b>
-          <h3>Act with the current model</h3>
-          <p>Workers execute bounded work against explicit scope, success criteria and an evidence plan.</p>
-          <code>work.workerReady[]</code>
-        </article>
-        <article>
-          <b>02</b>
-          <h3>Escalate uncertainty</h3>
-          <p>Architecture choices, conflicting evidence and unclear oracles move back to deeper control.</p>
-          <code>usegit escalate WORK-…</code>
-        </article>
-        <article>
-          <b>03</b>
-          <h3>Run a falsifiable experiment</h3>
-          <p>The missing piece of domain knowledge becomes a hypothesis with measurable acceptance criteria.</p>
-          <code>EXP-… → evidence</code>
-        </article>
-        <article>
-          <b>04</b>
-          <h3>Persist the lesson</h3>
-          <p>Accepted, rejected and falsified results stay queryable so future work does not walk the same loop.</p>
-          <code>refs/notes/usegit</code>
-        </article>
-      </div>
-    </section>
-
-    <section class="dark" id="gates">
-      <div class="wrap">
-        <div class="section-head light">
-          <p class="eyebrow">Evidence-gated architecture</p>
-          <h2>Architecture is not a chat opinion.<br>It is a state transition with a gate.</h2>
-          <p>
-            Mark a change as architectural, define what would make it safe to accept, collect evidence on the exact tree,
-            and only then let the system cross the boundary.
+            Instead of deciding in chat, define what must be true, run the experiment,
+            attach the evidence and record the decision.
           </p>
         </div>
 
-        <div class="gate-layout">
-          <pre><code>$ usegit start \
-  --goal "replace historian storage model" \
-  --hypothesis "partitioned Postgres meets retention and query targets" \
-  --architecture-decision \
-  --success "p95 query &lt; 200 ms; retention cost within budget" \
-  --evidence-plan "replay production-shaped workload in CI"
+        <pre><code>hypothesis
+"partitioned Postgres is fast enough"
 
-→ route: control / deep
-→ status: active
+        ↓
 
-$ usegit evidence WORK-ARCH-17 \
-  --kind observed \
-  --source "ci:historian-benchmark-412" \
-  --result success
+evidence
+"p95 query: 142 ms"
 
-$ usegit finish WORK-ARCH-17 --decision accepted
+        ↓
 
-→ gate passed for the exact validated tree</code></pre>
+gate
+"target: < 200 ms"
 
-          <div class="gate-list">
-            <div><span>1</span><p><strong>Declare the boundary.</strong> The system knows this is not ordinary implementation work.</p></div>
-            <div><span>2</span><p><strong>Define the oracle.</strong> Success is explicit before implementation bias appears.</p></div>
-            <div><span>3</span><p><strong>Attach trusted evidence.</strong> Observations are bound to the exact Git tree and environment.</p></div>
-            <div><span>4</span><p><strong>Persist the decision.</strong> Future agents inherit both the architecture and why it was allowed through.</p></div>
-          </div>
-        </div>
+        ↓
+
+decision
+accepted</code></pre>
       </div>
     </section>
 
-    <section class="section wrap">
-      <div class="section-head">
-        <p class="eyebrow">What actually learns</p>
-        <h2>The repository becomes the system's long-term learning substrate.</h2>
-      </div>
-
-      <div class="graphs">
-        <article>
-          <span>Intent</span>
-          <h3>What the system is trying to change</h3>
-          <p>Goals, hypotheses, dependencies and supersession.</p>
-          <code>experiments/*.json</code>
-        </article>
-        <article>
-          <span>Work</span>
-          <h3>What is currently being explored</h3>
-          <p>Leases, scopes, awaits, continuations and handoffs.</p>
-          <code>refs/usegit/work/*</code>
-        </article>
-        <article>
-          <span>Evidence</span>
-          <h3>What the world actually said</h3>
-          <p>Observed and attested results attached without rewriting commits.</p>
-          <code>refs/notes/usegit</code>
-        </article>
-        <article>
-          <span>Decision</span>
-          <h3>What changed in the domain model</h3>
-          <p>Accepted, rejected and falsified knowledge that future work can reuse.</p>
-          <code>Usegit-Decision</code>
-        </article>
-      </div>
-    </section>
-
-    <section class="proof">
-      <div class="wrap">
-        <p class="eyebrow">Dogfooded in this repository</p>
-        <div class="proof-grid">
-          <article>
-            <strong>5.11%</strong>
-            <p>causal context size compared with recent raw patch history</p>
-            <small>EXP-0003 · accepted</small>
-          </article>
-          <article>
-            <strong>1.0</strong>
-            <p>critical causal field recall after context compression</p>
-            <small>EXP-0003 · accepted</small>
-          </article>
-          <article>
-            <strong>1 commit</strong>
-            <p>portable bootstrap boundary without rewriting legacy history</p>
-            <small>EXP-0007 · accepted</small>
-          </article>
-          <article>
-            <strong>2 lanes</strong>
-            <p>validated reusable CI on POSIX and self-hosted Windows runners</p>
-            <small>EXP-0011 · accepted</small>
-          </article>
-        </div>
-      </div>
+    <section class="why wrap">
+      <p class="eyebrow">Why Git</p>
+      <h2>The knowledge stays with the code.</h2>
+      <p>
+        No separate memory service is required. Experiments, evidence and decisions travel with the repository,
+        survive agent handoffs, and remain available to whatever model works on the project next.
+      </p>
     </section>
 
     <section class="install wrap" id="install">
       <div>
         <p class="eyebrow">Start with one repository</p>
-        <h2>No service to deploy.</h2>
-        <p>
-          usegit is deliberately small: Git objects, refs, notes and a CLI. Existing history stays untouched.
-          The first adoption commit becomes the bootstrap boundary.
-        </p>
+        <h2>One command.</h2>
+        <p>Existing history stays untouched.</p>
       </div>
-      <pre><code>npx --yes github:Pom4H/usegit#main init
-
-git add .usegit AGENTS.md experiments/README.md \
-  .github/workflows/usegit-causal.yml
-
-git commit -m "chore: adopt usegit"</code></pre>
+      <pre><code>npx --yes github:Pom4H/usegit#main init</code></pre>
     </section>
   </main>
 
   <footer class="footer wrap">
     <span class="brand">usegit</span>
-    <p>Infrastructure for self-learning software systems.</p>
+    <p>Software that learns from development.</p>
     <div>
       <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source ↗</a>
       <a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT</a>
