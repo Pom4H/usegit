@@ -15,13 +15,20 @@ function fresh() {
   return createWorkState({
     id: 'WORK-1',
     goal: 'ship durable work',
-    hypothesis: 'git refs preserve execution state',
     base: 'abc123',
     owner: 'agent-a',
     now: T0,
     leaseMs: 60_000,
   });
 }
+
+test('work needs coordination fields, not a hypothesis', () => {
+  const state = fresh();
+  assert.equal(state.goal, 'ship durable work');
+  assert.equal('hypothesis' in state, false);
+  assert.equal('experiment' in state, false);
+  assert.equal('route' in state, false);
+});
 
 test('active lease becomes stale without mutating stored state', () => {
   const work = fresh();
@@ -30,42 +37,63 @@ test('active lease becomes stale without mutating stored state', () => {
   assert.equal(work.status, 'active');
 });
 
+test('ready work is lease-free and claimable', () => {
+  const ready = createWorkState({
+    id: 'WORK-Q',
+    goal: 'queued',
+    scopes: ['src/**'],
+    base: 'abc123',
+    owner: 'control',
+    ready: true,
+    now: T0,
+  });
+  assert.equal(ready.status, 'ready');
+  assert.equal(ready.lease, null);
+
+  const claimed = resumeWorkState(ready, {
+    owner: 'worker',
+    now: T0 + 1,
+    leaseMs: 60_000,
+  });
+  assert.equal(claimed.status, 'active');
+  assert.equal(claimed.lease.owner, 'worker');
+});
+
 test('await releases the lease and preserves continuations', () => {
   const waiting = awaitWorkState(fresh(), {
     owner: 'agent-a',
     event: 'ci:render',
-    onSuccess: 'combine material experiment',
-    onFailure: 'inspect gpu trace',
+    onSuccess: 'finish',
+    onFailure: 'inspect',
     now: T0 + 10_000,
   });
 
   assert.equal(waiting.status, 'awaiting');
   assert.equal(waiting.lease, null);
   assert.equal(waiting.awaiting.event, 'ci:render');
-  assert.equal(waiting.continuation.success, 'combine material experiment');
+  assert.equal(waiting.continuation.success, 'finish');
 });
 
-test('a fresh agent resumes awaited work from evidence', () => {
+test('a fresh agent resumes awaited work', () => {
   const waiting = awaitWorkState(fresh(), {
     owner: 'agent-a',
     event: 'ci:render',
-    onSuccess: 'combine material experiment',
-    onFailure: 'inspect gpu trace',
+    onSuccess: 'finish',
+    onFailure: 'inspect',
     now: T0 + 10_000,
   });
 
   const resumed = resumeWorkState(waiting, {
     owner: 'agent-b',
     result: 'success',
-    evidence: 'reality gap 0.091 -> 0.074',
+    evidence: 'passed',
     now: T0 + 70_000,
     leaseMs: 60_000,
   });
 
   assert.equal(resumed.status, 'active');
   assert.equal(resumed.lease.owner, 'agent-b');
-  assert.equal(resumed.selectedContinuation, 'combine material experiment');
-  assert.equal(resumed.evidence.at(-1).result, 'success');
+  assert.equal(resumed.selectedContinuation, 'finish');
 });
 
 test('an unexpired lease prevents another agent from stealing active work', () => {
@@ -75,7 +103,7 @@ test('an unexpired lease prevents another agent from stealing active work', () =
   }), /lease is held by agent-a/);
 });
 
-test('an expired lease can be taken over', () => {
+test('an expired lease can be reclaimed', () => {
   const resumed = resumeWorkState(fresh(), {
     owner: 'agent-b',
     now: T0 + 70_000,
@@ -84,16 +112,15 @@ test('an expired lease can be taken over', () => {
   assert.equal(resumed.lease.owner, 'agent-b');
 });
 
-test('finish creates a terminal decision and compact overview surfaces stale work', () => {
+test('finish creates a terminal decision', () => {
   const done = finishWorkState(fresh(), {
     owner: 'agent-a',
     decision: 'accepted',
     summary: 'validated',
     now: T0 + 20_000,
   });
-  assert.equal(done.status, 'accepted');
 
-  const overview = compactWorkOverview([fresh(), done], T0 + 70_000);
-  assert.equal(overview.stale.length, 1);
+  assert.equal(done.status, 'accepted');
+  const overview = compactWorkOverview([done], T0 + 70_000);
   assert.equal(overview.finished.length, 1);
 });

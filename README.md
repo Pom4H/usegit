@@ -1,185 +1,90 @@
 # usegit
 
-`usegit` keeps AI coding work in Git.
+Git-native coordination for coding agents.
 
-Agents can stop, resume, coordinate, and only accept changes that have evidence for the exact code that was tested. The conversation can disappear; the repository keeps the process.
+usegit keeps shared agent work durable and race-safe in Git. Project commits remain ordinary Git commits.
 
-## Start in one command
+## Start
 
 ```bash
 npx --yes github:Pom4H/usegit#main init
-```
-
-That adds the small amount of repository state and agent instructions usegit needs. Existing history is left untouched.
-
-After that, a fresh agent starts with a typed decision capsule:
-
-```bash
-npx --yes github:Pom4H/usegit#main capsule
-```
-
-The capsule contains IDs, Git/tree applicability, evidence provenance, hashes and freshness rules, but does not inline arbitrary repository prose. Fetch a goal, hypothesis or continuation explicitly with `usegit content WORK-* --field ...`; that output is marked untrusted.
-
-## The idea
-
-Git already remembers **what the code became**.
-
-usegit adds enough state to remember:
-
-- what is being worked on;
-- who owns the next decision;
-- what the change is trying to prove;
-- what evidence exists;
-- whether that evidence still applies;
-- what should happen next.
-
-```text
-intent -> hypothesis -> WORK -> change -> evidence -> decision
-```
-
-Git remains the source of truth.
-
-## Work survives the agent
-
-Start a piece of work:
-
-```bash
-usegit start \
-  --goal "reduce renderer cost" \
-  --hypothesis "cache probe visibility"
-```
-
-Before waiting on CI or another external event:
-
-```bash
-usegit await WORK-1234 \
-  --event ci:test \
-  --on-success "finish if the result is still valid"
-```
-
-The agent can now exit.
-
-Later, another agent can recover everything from Git:
-
-```bash
-usegit capsule
-
-usegit resume WORK-1234 \
-  --result success \
-  --evidence "tests passed" \
-  --evidence-kind observed \
-  --evidence-source "github-actions:412"
-```
-
-No chat history is required.
-
-## Evidence belongs to exact code
-
-A green result is not treated as a vague project-wide fact.
-
-```text
-tree A -- tested --> evidence for tree A
-
-tree A
-  |
-  +-- code changes
-  v
-tree B -- old evidence no longer accepts this tree
-```
-
-For acceptance, usegit requires trusted positive evidence for the exact Git tree being accepted.
-
-Evidence also records quality:
-
-```text
-first-pass          may support acceptance
-manual-attestation  may support acceptance
-retry-pass          context only
-flaky               context only
-tampered            rejected
-```
-
-New evidence has a stable `EV-*` identity and integrity digest. Duplicate delivery is idempotent.
-
-## Parallel agents fail safe
-
-When more than one agent is working, usegit can coordinate them with:
-
-- expiring leases;
-- compare-and-swap Git ref updates;
-- file scopes;
-- semantic read/write resources;
-- dependencies;
-- a derived worker queue.
-
-Two workers can race for the same WORK, but only one durable owner is allowed.
-
-You do not need any of this to get started. It becomes useful when the repository starts running multiple pieces of work in parallel.
-
-## Where the state lives
-
-```text
-normal commits            code + causal trailers
-refs/usegit/work/*        durable WORK state
-refs/notes/usegit         CI / observed evidence
-experiments/              durable experiment records
-```
-
-There is no separate source-of-truth database.
-
-## Useful commands
-
-```bash
-usegit capsule
-usegit content WORK-1234 --field goal
-usegit context
-usegit start
 usegit status
+```
+
+## Work you own now
+
+```bash
+usegit start --id WORK-42 --goal "fix cache invalidation" --scope "src/cache/**"
+```
+
+`start` creates active work with your lease.
+
+## Work for a pool
+
+```bash
+usegit enqueue --id WORK-43 --goal "fix parser" --scope "src/parser/**"
+usegit claim-next
+```
+
+`enqueue` creates lease-free ready work. `batch` publishes several ready items at once.
+
+The queue uses only coordination facts: dependencies, file scopes, semantic resources and priority. It does not try to classify task uncertainty or decide which model should do the work.
+
+## Wait and resume
+
+```bash
+usegit await WORK-42 --event ci:test --on-success "finish after checking CI"
+```
+
+The lease is released. A fresh agent can later recover from Git alone:
+
+```bash
+usegit status
+usegit resume WORK-42 --result success --evidence "tests passed" --evidence-kind observed --evidence-source "github-actions:412"
+```
+
+## Exact-tree evidence
+
+Observed/attested evidence records the exact Git tree. If project code changes, old evidence cannot accept the new tree.
+
+```bash
+usegit evidence WORK-42 --kind observed --source "github-actions:412" --result success
+usegit finish WORK-42 --decision accepted
+```
+
+Asserted agent text alone cannot accept work.
+
+## State
+
+Runtime state lives in:
+
+```text
+refs/usegit/work/*
+```
+
+Each transition creates an immutable Git state commit containing `work.json`, then moves the WORK ref with compare-and-swap semantics.
+
+## Commands
+
+```text
+usegit status
+usegit start
+usegit enqueue
+usegit batch
+usegit claim
+usegit claim-next
 usegit await
 usegit resume
 usegit evidence
 usegit finish
+usegit escalate
 usegit doctor
 ```
 
-For bounded parallel work:
+## Non-goals
 
-```bash
-usegit batch .usegit/batch.json
-usegit claim-next
-```
+usegit does not prescribe commit messages, trailers, commit granularity, branch strategy, PR strategy, prompt formats, agent memory summaries or dashboards.
 
-`usegit agents` remains available as a diagnostic projection, but EXP-0014 showed it is unsafe to treat arbitrary repository text as trusted prompt instructions.
-
-For the human-readable projection:
-
-```bash
-usegit view --output usegit.html
-```
-
-## What is enforced today
-
-The repository dogfoods the protocol in CI. Current invariants include:
-
-- asserted evidence cannot accept a change;
-- evidence becomes stale when the Git tree changes;
-- retry passes are not silently promoted to clean passes;
-- tampered evidence fails closed;
-- duplicate evidence delivery stays single;
-- two workers racing a claim end with one owner;
-- an awaiting WORK can be resumed from a fresh clone after the original process and checkout disappear;
-- semantic conflicts can block otherwise disjoint file changes.
-
-## Behavioral benchmark
-
-The remaining capsule gate is fresh-agent decision accuracy. `npm run decision:verify` validates the blind fixture/grader protocol; `npm run decision:prepare -- /tmp/decision-v1` emits fixtures for independent fresh-agent runs. The full `decision-v1` matrix is 90 runs.
-
-## Go deeper
-
-The README is intentionally the short path.
-
-- [Protocol](docs/protocol.md) — state model, evidence, scheduling and recovery
-- [Agent rules](AGENTS.md) — how agents should operate in a usegit repository
-- [Experiments](experiments/) — hypotheses and evidence from usegit dogfooding itself
+If ordinary Git plus ordinary agent commits coordinate concurrent agents just as well, usegit has no reason to exist.
 
 MIT.

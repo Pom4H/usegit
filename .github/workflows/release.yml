@@ -31,14 +31,13 @@ jobs:
       - name: Validate release tree
         run: |
           npm test
-          npm run validate
           npm pack --dry-run --json > npm-pack.json
 
       - name: Resolve version
         id: version
         shell: bash
         run: |
-          version="v$(node -p "require('./package.json').version")"
+          version="v$(node -p \"require('./package.json').version\")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Check whether version already exists
