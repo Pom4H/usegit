@@ -26,7 +26,7 @@
       "B": "bench/granularity/b-v1",
       "C": "bench/granularity/c-v1"
     },
-    "taskIds": ["reconstruct", "surgical-revert", "continue"],
+    "taskIds": ["reconstruct-causal-units", "rollback-interface", "rollback-measurement"],
     "repetitionsPerTask": 3,
     "results": []
   },
@@ -36,6 +36,7 @@
     "A winner requires paired replay on histories that end at the same tree.",
     "Replay agents receive anonymous isolated Git workspaces; treatment mapping stays evaluator-side.",
     "Each strategy/task cell needs three independent fresh-agent repetitions: 27 runs total.",
+    "Rollback tasks are scored by exact oracle tree SHA; reconstruction requires historical causal recovery.",
     "The selection policy itself is part of the experiment and may be falsified."
   ],
   "decision": null

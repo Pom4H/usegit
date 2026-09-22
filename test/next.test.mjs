@@ -56,9 +56,9 @@ test('requires every strategy/task cell to be independently replicated', () => {
       sampleReady: true,
       repetitionsPerTask: 3,
       completedMatrix: {
-        coarse: { reconstruct: 3, 'surgical-revert': 2, continue: 3 },
-        fine: { reconstruct: 3, 'surgical-revert': 3, continue: 3 },
-        dynamic: { reconstruct: 3, 'surgical-revert': 3, continue: 3 },
+        coarse: { 'reconstruct-causal-units': 3, 'rollback-interface': 2, 'rollback-measurement': 3 },
+        fine: { 'reconstruct-causal-units': 3, 'rollback-interface': 3, 'rollback-measurement': 3 },
+        dynamic: { 'reconstruct-causal-units': 3, 'rollback-interface': 3, 'rollback-measurement': 3 },
       },
       completedRuns: 26,
       requiredRuns: 27,
@@ -68,7 +68,7 @@ test('requires every strategy/task cell to be independently replicated', () => {
 
   assert.equal(next.kind, 'run-controlled-granularity-replay');
   assert.deepEqual(next.assignments, [
-    { strategy: 'coarse', task: 'surgical-revert', remaining: 1 },
+    { strategy: 'coarse', task: 'rollback-interface', remaining: 1 },
   ]);
   assert.match(next.reason, /26\/27/);
 });
