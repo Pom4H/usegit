@@ -49,6 +49,34 @@
     "trackedWorktreeMutation": false,
     "deterministicRegeneration": true
   },
-  "evidence": [],
-  "decision": null
+  "evidence": [
+    {
+      "kind": "mechanistic-ci",
+      "trust": "observed",
+      "source": "github-actions:35733142191",
+      "commit": "28780efd01fee0071d42774f487309502f386da9",
+      "result": "success",
+      "metrics": {
+        "decisionCriticalFieldRecall": 1,
+        "compiledContextBytes": 5953,
+        "rawContextBytes": 7983,
+        "compiledToRawRatio": 0.7457,
+        "deterministicRegeneration": true,
+        "runtimeCachePath": ".git/usegit/AGENTS.md",
+        "trackedRuntimeProjection": false
+      },
+      "protocolChecks": {
+        "validate": "success",
+        "doctor": "success",
+        "provenance": "success",
+        "protocolChaos": "4/4 success"
+      },
+      "conclusion": "Mechanistic gates passed on the exact implementation tree. Behavioral A/B/C startup accuracy remains unmeasured, so the experiment stays running."
+    }
+  ],
+  "decision": null,
+  "notes": [
+    "The first mechanistic measurement reduced the already-compact `usegit context` baseline by 25.43% while preserving every declared decision-critical token.",
+    "This is not enough to accept EXP-0013: fresh-agent behavioral runs must still measure next-action accuracy, duplicate-work rate and stale-evidence mistakes."
+  ]
 }
