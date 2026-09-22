@@ -12,6 +12,7 @@
     "batch": "node src/cli.mjs batch",
     "work": "node src/cli.mjs work",
     "start": "node src/cli.mjs start",
+    "enqueue": "node src/cli.mjs enqueue",
     "status": "node src/cli.mjs status",
     "await": "node src/cli.mjs await",
     "escalate": "node src/cli.mjs escalate",
@@ -43,4 +44,4 @@
     "README.md",
     "LICENSE"
   ]
-}
+}\n
