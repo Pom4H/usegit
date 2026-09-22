@@ -1,11 +1,8 @@
 {
   "name": "usegit",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "bin": {
-    "usegit": "./src/cli.mjs"
-  },
+  "bin": { "usegit": "./src/cli.mjs" },
   "scripts": {
     "test": "node --test",
     "init": "node src/cli.mjs init",
@@ -30,7 +27,11 @@
     "finish": "node src/cli.mjs finish",
     "view": "node src/cli.mjs view"
   },
-  "engines": {
-    "node": ">=22"
-  }
+  "engines": { "node": ">=22" },
+  "description": "Causal Git memory and durable execution state for AI-native software development.",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Pom4H/usegit.git" },
+  "homepage": "https://pom4h.github.io/usegit/",
+  "bugs": { "url": "https://github.com/Pom4H/usegit/issues" },
+  "files": ["src", "docs", ".usegit", "experiments", "AGENTS.md", "README.md", "LICENSE"]
 }
