@@ -33,7 +33,9 @@ test('init is idempotent and preserves repository-specific agent instructions', 
     assert.match(agentsAfterFirst, /Pull requests are integration boundaries/);
     assert.match(workflowAfterFirst, /reusable\.yml@v1/);
     assert.equal(config.tool.ref, 'v1');
-    assert.equal(config.workRefPrefix, 'refs/usegit/work/');\n    assert.equal(first.files.batchExample, 'created');\n    assert.ok(readFileSync(path.join(cwd, '.usegit', 'batch.example.json'), 'utf8').includes('BATCH-example'));
+    assert.equal(config.workRefPrefix, 'refs/usegit/work/');
+    assert.equal(first.files.batchExample, 'created');
+    assert.ok(readFileSync(path.join(cwd, '.usegit', 'batch.example.json'), 'utf8').includes('BATCH-example'));
     assert.equal(run(cwd, ['config', '--get', 'notes.rewriteRef']), 'refs/notes/usegit');
 
     const second = initializeRepository(cwd, { toolRef: 'v1' });
