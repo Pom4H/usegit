@@ -65,6 +65,35 @@ jobs:
           git push origin ":refs/usegit/work/$WORK_ID" || true
           git update-ref -d "refs/usegit/work/$WORK_ID" || true
 
+
+  blind-ai-handoff-arm:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' && contains(github.event.head_commit.message, 'Usegit-Arm-Blind-Handoff: true') }}
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Arm durable blind handoff
+        env:
+          USEGIT_AGENT_ID: blind-source-agent
+        run: |
+          node src/cli.mjs start \
+            --id WORK-BLIND-0001 \
+            --goal "prove a fresh AI can continue usegit development from repository state only" \
+            --hypothesis "a fresh agent can discover awaiting work, verify its external evidence, choose the encoded continuation, and act without prior chat context" \
+            --experiment EXP-0006
+          node src/cli.mjs await WORK-BLIND-0001 \
+            --event "github-actions:run-35695189535" \
+            --on-success "Continue EXP-0006 by adding declarative WORK scopes and compact overlap/conflict reporting for concurrent agents. Add tests, keep the current PR count unchanged, and preserve causal metadata." \
+            --on-failure "Investigate why remote durable-work handoff validation failed before adding concurrency features."
+          git update-ref -d refs/usegit/work/WORK-BLIND-0001
+          git fetch origin refs/usegit/work/WORK-BLIND-0001:refs/usegit/work/WORK-BLIND-0001
+          git show refs/usegit/work/WORK-BLIND-0001:work.json | grep '"status": "awaiting"'
+
   blind-replay-fixtures:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
     needs: validate
