@@ -1,8 +1,37 @@
 # usegit
 
-`usegit` is an experiment in treating Git as the design-time memory and durable execution state of AI-native software development.
+`usegit` is infrastructure for **self-learning software systems**.
 
-The repository dogfoods itself. Meaningful changes carry machine-readable causal metadata, CI materializes evidence into Git notes, live work is persisted under Git refs, and the CLI reconstructs what was tried, what is still running, what is awaiting external evidence, and what should happen next.
+The system starts with the smallest domain model that is sufficient to act. When uncertainty blocks progress, it can deepen that part of the domain through a falsifiable experiment, persist the resulting knowledge in Git, and require evidence before crossing an architectural boundary.
+
+This is learning at the software-system level, not model-weight training. Intent, hypotheses, work state, observations and decisions accumulate in the repository so later agents can operate from what the system has already learned instead of reconstructing it from chat.
+
+## Learning loop
+
+```text
+work
+  |
+  v
+uncertainty ---- no ----> bounded execution
+  |
+ yes
+  v
+experiment -> evidence -> decision
+                         |
+                         v
+                 architecture gate
+                         |
+                  pass / reject
+                         |
+                         v
+                  updated domain
+```
+
+Domain knowledge is deepened **on demand**. Low-uncertainty work stays cheap and executable. Architecture decisions, conflicting evidence and missing oracles move into deeper control. Accepted, rejected and falsified results become durable negative or positive knowledge.
+
+Architecture is treated as a gated state transition rather than an opinion in a conversation. A gate declares the decision boundary, defines success and an evidence plan, collects trusted evidence for the exact Git tree, and only then records the architectural decision.
+
+The repository dogfoods this model. Meaningful changes carry machine-readable causal metadata, CI materializes evidence into Git notes, live work is persisted under Git refs, and the CLI reconstructs what was tried, what is still running, what is awaiting external evidence, what the system has learned, and what should happen next.
 
 ## Adopt it in an existing repository
 
