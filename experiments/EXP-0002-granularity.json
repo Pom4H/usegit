@@ -1,0 +1,34 @@
+{
+  "id": "EXP-0002",
+  "question": "What commit granularity preserves causal meaning with the lowest coordination cost?",
+  "hypothesis": "Dynamic boundaries based on independently falsifiable causal units will outperform fixed small or fixed large commits.",
+  "status": "running",
+  "variants": [
+    {
+      "id": "coarse",
+      "rule": "one whole experiment per commit"
+    },
+    {
+      "id": "fine",
+      "rule": "one narrow artifact or implementation step per commit"
+    },
+    {
+      "id": "dynamic",
+      "rule": "one independently falsifiable causal unit per commit"
+    }
+  ],
+  "minimumSamplesPerVariant": 3,
+  "metrics": [
+    "history_reconstruction_cost",
+    "revert_precision",
+    "metadata_overhead",
+    "commits_per_experiment",
+    "repeated_work_rate"
+  ],
+  "notes": [
+    "File and line counts are observations, not boundary rules.",
+    "Do not select a winner before every variant reaches the minimum sample count.",
+    "The selection policy itself is part of the experiment and may be falsified."
+  ],
+  "decision": null
+}
