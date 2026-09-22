@@ -12,7 +12,7 @@ export function createWorkState({
   hypothesis,
   experiment = null,
   scopes = [],
-  base:
+  base,
   owner,
   now = Date.now(),
   leaseMs = 30 * 60_000,
