@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>usegit — turn commits into context</title>
-  <meta name="description" content="usegit keeps AI coding work, evidence and decisions in Git so agents can stop, resume and coordinate without losing the process.">
-  <meta name="theme-color" content="#080b11">
+  <meta name="description" content="Durable Git-native work state for AI coding agents. Stop, resume, coordinate and keep evidence tied to the exact code it tested.">
+  <meta name="theme-color" content="#07090d">
   <meta property="og:title" content="usegit — turn commits into context">
   <meta property="og:description" content="Agents can stop. The repository keeps the work, evidence and next safe action.">
   <meta property="og:type" content="website">
@@ -20,236 +20,226 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="topbar wrap">
-    <a class="brand" href="#top" aria-label="usegit home"><img src="./logo.svg" alt="" width="28" height="28"><span>usegit</span><small>v0.1.0</small></a>
-    <nav>
-      <a href="#runtime">How it works</a>
+  <header class="nav shell">
+    <a class="brand" href="#top" aria-label="usegit home">
+      <img src="./logo.svg" alt="" width="30" height="30">
+      <span>usegit</span>
+      <small>0.1</small>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#model">Model</a>
       <a href="#evidence">Evidence</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub ↗</a>
+      <a class="nav-github" href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">GitHub ↗</a>
     </nav>
   </header>
 
   <main id="top">
-    <section class="hero wrap">
+    <section class="hero shell">
       <div class="hero-copy">
-        <p class="kicker">Git-native state for AI coding agents</p>
-        <h1>Agents can stop.<br>Work keeps going.</h1>
-        <p class="hero-rule">Turn commits into context.</p>
-        <p class="lede">
-          usegit keeps work, evidence and decisions in Git,
-          so a fresh agent can continue without reconstructing the project from chat.
-        </p>
-        <div class="actions">
-          <a class="button primary" href="#install">Try usegit</a>
-          <a class="button" href="https://github.com/Pom4H/usegit/blob/main/docs/protocol.md" target="_blank" rel="noreferrer">Protocol ↗</a>
+        <p class="eyebrow"><span></span>Git-native state for AI coding agents</p>
+        <h1>Turn commits<br>into context.</h1>
+        <p class="intro">A coding session can end. The repository still knows what is in progress, what was observed, and what the next agent can safely do.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#install">Use it now</a>
+          <a class="button" href="https://github.com/Pom4H/usegit/blob/main/docs/protocol.md" target="_blank" rel="noreferrer">Read protocol ↗</a>
         </div>
       </div>
 
-      <div class="runtime-card" aria-label="usegit handoff flow">
-        <div class="runtime-head">
-          <span>repository state</span>
-          <code>usegit context</code>
+      <div class="context-window" aria-label="Example usegit context output">
+        <div class="window-bar">
+          <div class="window-title"><i></i><span>usegit context</span></div>
+          <span class="window-meta">repo / main</span>
         </div>
-        <div class="runtime-flow">
-          <div class="node control">
-            <small>1 · START</small>
-            <strong>Define the change</strong>
-            <span>goal · hypothesis</span>
+        <div class="context-body">
+          <div class="context-summary">
+            <div><small>ACTIVE</small><strong>1</strong></div>
+            <div><small>AWAITING</small><strong>1</strong></div>
+            <div><small>READY</small><strong>2</strong></div>
           </div>
-          <i>↓</i>
-          <div class="node ready">
-            <small>2 · WORK</small>
-            <strong>Agent implements it</strong>
-            <span>state is persisted in Git</span>
-          </div>
-          <i>↓</i>
-          <div class="node worker">
-            <small>3 · WAIT</small>
-            <strong>CI runs. Agent can exit.</strong>
-            <span>continuation stays durable</span>
-          </div>
-          <div class="fork">
-            <span>fresh agent</span>
-            <b>+</b>
-            <span>same repository</span>
-          </div>
-          <div class="node accepted">
-            <small>4 · RESUME</small>
-            <strong>Read evidence. Continue.</strong>
-            <span>accept only the exact tested tree</span>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="statement">
-      <div class="wrap statement-inner">
-        <p class="kicker">The problem</p>
-        <h2>Chat should not be process state.</h2>
-        <p>
-          When an agent stops, the repository should still know what was in progress,
-          what it was trying to prove, what CI observed, and what is safe to do next.
-        </p>
-      </div>
-    </section>
+          <article class="work-card active">
+            <div class="work-line">
+              <span class="state-dot"></span>
+              <strong>WORK-A12F</strong>
+              <small>active</small>
+            </div>
+            <h2>Reduce renderer cost</h2>
+            <p>cache probe visibility without changing output</p>
+            <div class="work-meta"><span>owner agent-3</span><span>lease 08:42</span></div>
+          </article>
 
-    <section class="section wrap" id="runtime">
-      <div class="section-title">
-        <p class="kicker">Small by default</p>
-        <h2>Start simple. Add coordination only when you need it.</h2>
-      </div>
+          <article class="work-card waiting">
+            <div class="work-line">
+              <span class="state-dot"></span>
+              <strong>WORK-91CE</strong>
+              <small>awaiting</small>
+            </div>
+            <h2>Verify release candidate</h2>
+            <p>waiting for github-actions / test</p>
+            <div class="work-meta"><span>continuation stored</span><span>agent may exit</span></div>
+          </article>
 
-      <div class="capabilities">
-        <article>
-          <span>01</span>
-          <h3>Work survives the chat.</h3>
-          <p>
-            A WORK can wait for CI, release ownership, and be resumed later by a fresh agent from Git alone.
-          </p>
-          <footer><code>start · await · context · resume</code></footer>
-        </article>
-
-        <article>
-          <span>02</span>
-          <h3>The next agent knows what happened.</h3>
-          <p>
-            Hypotheses, failed attempts, evidence and decisions stay connected instead of disappearing with the conversation.
-          </p>
-          <footer><code>hypothesis → evidence → decision</code></footer>
-        </article>
-
-        <article>
-          <span>03</span>
-          <h3>Parallel work can fail safe.</h3>
-          <p>
-            When you need multiple workers, leases, scopes and Git compare-and-swap prevent silent double ownership.
-          </p>
-          <footer><code>claim-next · scopes · resources</code></footer>
-        </article>
-
-        <article>
-          <span>04</span>
-          <h3>Green is not enough.</h3>
-          <p>
-            Evidence belongs to an exact Git tree. Retry passes stay distinguishable from clean passes, and tampered evidence fails closed.
-          </p>
-          <footer><code>tree-exact evidence</code></footer>
-        </article>
-      </div>
-    </section>
-
-    <section class="terminal-section">
-      <div class="wrap terminal-grid">
-        <div>
-          <p class="kicker">A handoff without chat history</p>
-          <h2>Stop at CI.<br>Continue later.</h2>
-          <p>
-            You do not need a polling agent to stay alive.
-            Persist the wait, let the invocation end, and resume from the repository.
-          </p>
-        </div>
-
-        <pre><code><span>$</span> usegit start \
-  --goal "reduce renderer cost" \
-  --hypothesis "cache probe visibility"
-
-→ WORK-A12F · active
-
-<span>$</span> usegit await WORK-A12F \
-  --event ci:test \
-  --on-success "finish if valid"
-
-→ awaiting · agent can exit
-
-# later, from a fresh invocation
-
-<span>$</span> usegit context
-→ awaiting: WORK-A12F
-
-<span>$</span> usegit resume WORK-A12F \
-  --result success \
-  --evidence "tests passed" \
-  --evidence-kind observed \
-  --evidence-source "github-actions:412"
-
-<span>$</span> usegit finish WORK-A12F --decision accepted</code></pre>
-      </div>
-    </section>
-
-    <section class="section wrap" id="evidence">
-      <div class="learning-grid">
-        <div class="section-title">
-          <p class="kicker">Evidence that means something</p>
-          <h2>A result only proves the code it actually tested.</h2>
-        </div>
-
-        <div class="learning-copy">
-          <p>
-            usegit records the source and exact Git tree for observed evidence.
-            Change the tree and the old result no longer accepts the new code.
-          </p>
-          <p>
-            A clean first pass, a retry pass and an agent saying “looks good” are different facts.
-            usegit keeps them different.
-          </p>
-        </div>
-      </div>
-
-      <div class="learning-loop">
-        <div><small>1</small><strong>change</strong></div>
-        <i>→</i>
-        <div><small>2</small><strong>exact tree</strong></div>
-        <i>→</i>
-        <div><small>3</small><strong>observation</strong></div>
-        <i>→</i>
-        <div><small>4</small><strong>decision</strong></div>
-        <i>→</i>
-        <div class="knowledge"><small>5</small><strong>durable knowledge</strong></div>
-      </div>
-    </section>
-
-    <section class="gate-section">
-      <div class="wrap gate-grid">
-        <div>
-          <p class="kicker">Only when you need more</p>
-          <h2>Scale from one agent to many without changing the model.</h2>
-        </div>
-        <div class="gate-copy">
-          <p>
-            The same WORK state can later add scopes, dependencies, semantic resources and a worker queue.
-            The basic workflow stays the same: work, evidence, decision.
-          </p>
-          <div class="route">
-            <span>single agent</span><b>start → await → resume</b>
-            <span>parallel agents</span><b>scopes + leases</b>
-            <span>bounded worker pool</span><b>claim-next</b>
-            <span>ambiguous decision</span><b>keep in control</b>
+          <div class="next-action">
+            <span>next safe action</span>
+            <code>resume WORK-91CE when CI completes</code>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="install wrap" id="install">
+    <section class="install-strip shell" id="install">
       <div>
-        <p class="kicker">One bootstrap command</p>
-        <h2>Use it in an existing repo.</h2>
-        <p>
-          No framework migration and no separate source-of-truth service.
-          Existing Git history stays untouched.
-        </p>
+        <span class="install-label">add to an existing repo</span>
+        <code>npx --yes github:Pom4H/usegit#main init</code>
       </div>
-      <pre><code>npx --yes github:Pom4H/usegit#main init</code></pre>
+      <a href="https://github.com/Pom4H/usegit#quick-start" target="_blank" rel="noreferrer">Quick start ↗</a>
+    </section>
+
+    <section class="section shell" id="model">
+      <div class="section-heading">
+        <span>01 / MODEL</span>
+        <h2>Three things the repository should remember.</h2>
+      </div>
+      <div class="model-grid">
+        <article class="model-card model-work">
+          <span class="model-index">01</span>
+          <div class="model-icon"><i></i></div>
+          <h3>Work</h3>
+          <p>Goal, hypothesis, ownership, scope and the continuation required to resume later.</p>
+          <code>start · await · resume</code>
+        </article>
+        <article class="model-card model-evidence">
+          <span class="model-index">02</span>
+          <div class="model-icon"><i></i></div>
+          <h3>Evidence</h3>
+          <p>Observed results stay attached to the exact Git tree and retain where they came from.</p>
+          <code>tree · source · result</code>
+        </article>
+        <article class="model-card model-decision">
+          <span class="model-index">03</span>
+          <div class="model-icon"><i></i></div>
+          <h3>Decision</h3>
+          <p>Accepted, rejected and falsified ideas survive the chat instead of being rediscovered.</p>
+          <code>pending · accepted · rejected</code>
+        </article>
+      </div>
+    </section>
+
+    <section class="flow-section">
+      <div class="shell flow-shell">
+        <div class="section-heading compact">
+          <span>02 / HANDOFF</span>
+          <h2>Stop at CI. Continue from Git.</h2>
+          <p>No polling agent has to stay alive just to remember what happens next.</p>
+        </div>
+
+        <div class="flow">
+          <div class="flow-track" aria-hidden="true"></div>
+          <article>
+            <span class="flow-dot purple"></span>
+            <small>START</small>
+            <strong>Define one causal change</strong>
+            <p>goal + falsifiable hypothesis</p>
+          </article>
+          <article>
+            <span class="flow-dot blue"></span>
+            <small>WORK</small>
+            <strong>Implement it</strong>
+            <p>state lives in the repository</p>
+          </article>
+          <article>
+            <span class="flow-dot white"></span>
+            <small>AWAIT</small>
+            <strong>Persist the continuation</strong>
+            <p>the current invocation can end</p>
+          </article>
+          <article>
+            <span class="flow-dot cyan"></span>
+            <small>RESUME</small>
+            <strong>Read evidence and continue</strong>
+            <p>fresh agent, same state</p>
+          </article>
+        </div>
+
+        <pre class="code-block"><code><span class="prompt">$</span> usegit await WORK-A12F --event ci:test
+<span class="out">→ awaiting · continuation stored · lease released</span>
+
+<span class="comment"># later, in a fresh invocation</span>
+<span class="prompt">$</span> usegit context
+<span class="out">→ awaiting: WORK-A12F</span>
+<span class="prompt">$</span> usegit resume WORK-A12F --result success</code></pre>
+      </div>
+    </section>
+
+    <section class="section shell evidence-section" id="evidence">
+      <div class="section-heading">
+        <span>03 / EVIDENCE</span>
+        <h2>Green only counts for the code that was tested.</h2>
+      </div>
+
+      <div class="evidence-layout">
+        <div class="evidence-copy">
+          <p>usegit records provenance with the result. If the Git tree changes, the old result cannot silently accept the new code.</p>
+          <p>A clean pass, a retry pass, and an agent saying “looks good” remain different facts.</p>
+        </div>
+
+        <div class="evidence-card">
+          <div class="evidence-row">
+            <span>tree</span>
+            <code>7d92b3e…</code>
+          </div>
+          <div class="evidence-row">
+            <span>kind</span>
+            <code class="cyan-text">observed</code>
+          </div>
+          <div class="evidence-row">
+            <span>source</span>
+            <code>github-actions:412</code>
+          </div>
+          <div class="evidence-row">
+            <span>result</span>
+            <code class="cyan-text">success</code>
+          </div>
+          <div class="evidence-verdict">
+            <i></i>
+            <div><small>VALID FOR</small><strong>this exact tree</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scale-section">
+      <div class="shell scale-grid">
+        <div class="section-heading compact">
+          <span>04 / SCALE</span>
+          <h2>Start with one agent.</h2>
+          <p>Add coordination only when the work actually becomes parallel.</p>
+        </div>
+        <div class="scale-table">
+          <div><span>one agent</span><code>start → await → resume</code></div>
+          <div><span>parallel work</span><code>scopes + leases</code></div>
+          <div><span>worker pool</span><code>claim-next</code></div>
+          <div><span>ambiguous decision</span><code>keep in control</code></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final shell">
+      <img src="./logo.svg" alt="" width="64" height="64">
+      <h2>The chat can disappear.<br>The process should not.</h2>
+      <p>MIT licensed. No service required. Git stays the source of truth.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Open GitHub ↗</a>
+        <a class="button" href="#install">Install</a>
+      </div>
     </section>
   </main>
 
-  <footer class="footer wrap">
-    <span class="brand brand-static"><img src="./logo.svg" alt="" width="26" height="26"><span>usegit</span></span>
+  <footer class="footer shell">
+    <a class="brand" href="#top"><img src="./logo.svg" alt="" width="26" height="26"><span>usegit</span></a>
     <p>Turn commits into context.</p>
-    <div>
-      <a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source ↗</a>
-      <a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT</a>
-    </div>
+    <div><a href="https://github.com/Pom4H/usegit/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT</a><a href="https://github.com/Pom4H/usegit" target="_blank" rel="noreferrer">Source ↗</a></div>
   </footer>
 </body>
 </html>
