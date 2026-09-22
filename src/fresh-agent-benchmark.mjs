@@ -452,7 +452,8 @@ export function verifyDecisionBenchmark() {
         throw new Error('non-deterministic fixture: ' + item.id + '/' + variant);
       }
       const serialized = JSON.stringify(first);
-      if (serialized.includes('"oracle"') || serialized.includes(item.id) || serialized.includes(variant)) {
+      const forbiddenMetadata = ['"scenarioId"', '"variant"', '"oracle"', '"blindAlias"'];
+      if (forbiddenMetadata.some((marker) => serialized.includes(marker)) || serialized.includes(variant)) {
         throw new Error('fixture leaks evaluator metadata: ' + item.id + '/' + variant);
       }
       const expected = expectedDecision(item.id, variant);
