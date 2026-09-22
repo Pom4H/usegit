@@ -403,3 +403,9 @@ These tests are part of the protocol definition: behavior that cannot survive cr
 The capsule includes WORK base/tree, evidence quality and exact-tree provenance, a non-authoritative snapshot rule, explicit re-sync-before-mutation semantics, non-actionable negative knowledge when conditions are unknown, and a hard WORK selection budget.
 
 The legacy `usegit agents` Markdown projection remains available for diagnostics, but it is no longer the recommended startup interface. EXP-0014 falsified treating it as trusted prompt context.
+
+### Fresh-agent behavioral oracle
+
+`EXP-0016` / `decision-v1` is the behavioral gate after the typed capsule's mechanistic safety gate. It compares raw context, the legacy Markdown projection, and the typed capsule on blinded next-action scenarios. Fixtures omit scenario ids, variant labels and evaluator answers; responses are strict JSON and are graded mechanically.
+
+The benchmark requires three fresh-context repetitions for every scenario/representation cell. Representation safety is not considered behaviorally validated until the full matrix is complete.

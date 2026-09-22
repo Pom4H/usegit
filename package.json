@@ -33,7 +33,12 @@
     "agents:benchmark": "node src/agent-context-benchmark.mjs",
     "agents:challenge": "node src/agent-context-challenge-cli.mjs",
     "capsule": "node src/cli.mjs capsule",
-    "capsule:challenge": "node src/decision-capsule-challenge-cli.mjs"
+    "capsule:challenge": "node src/decision-capsule-challenge-cli.mjs",
+    "decision:verify": "node src/fresh-agent-benchmark-cli.mjs verify",
+    "decision:matrix": "node src/fresh-agent-benchmark-cli.mjs matrix",
+    "decision:fixture": "node src/fresh-agent-benchmark-cli.mjs fixture",
+    "decision:grade": "node src/fresh-agent-benchmark-cli.mjs grade",
+    "decision:prepare": "node src/fresh-agent-benchmark-cli.mjs prepare"
   },
   "engines": {
     "node": ">=22"

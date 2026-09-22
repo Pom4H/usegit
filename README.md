@@ -170,6 +170,10 @@ The repository dogfoods the protocol in CI. Current invariants include:
 - an awaiting WORK can be resumed from a fresh clone after the original process and checkout disappear;
 - semantic conflicts can block otherwise disjoint file changes.
 
+## Behavioral benchmark
+
+The remaining capsule gate is fresh-agent decision accuracy. `npm run decision:verify` validates the blind fixture/grader protocol; `npm run decision:prepare -- /tmp/decision-v1` emits fixtures for independent fresh-agent runs. The full `decision-v1` matrix is 90 runs.
+
 ## Go deeper
 
 The README is intentionally the short path.
