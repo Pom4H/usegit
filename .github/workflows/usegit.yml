@@ -28,6 +28,43 @@ jobs:
           name: usegit-report
           path: usegit-report.json
 
+  durable-work-remote:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      WORK_ID: WORK-CI-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Start and suspend work
+        env:
+          USEGIT_AGENT_ID: ci-agent-a
+        run: |
+          node src/cli.mjs start             --id "$WORK_ID"             --goal "prove remote durable work handoff"             --hypothesis "custom Git refs survive process and local-ref loss"
+          node src/cli.mjs await "$WORK_ID"             --event ci:remote-handoff             --on-success "finish remote handoff"             --on-failure "inspect remote handoff"
+          git show "refs/usegit/work/$WORK_ID:work.json" | grep '"status": "awaiting"'
+          git update-ref -d "refs/usegit/work/$WORK_ID"
+      - name: Resume from remote ref as another agent
+        env:
+          USEGIT_AGENT_ID: ci-agent-b
+        run: |
+          node src/cli.mjs resume "$WORK_ID"             --result success             --evidence "remote ref survived local deletion"
+          git show "refs/usegit/work/$WORK_ID:work.json" | grep '"owner": "ci-agent-b"'
+          node src/cli.mjs finish "$WORK_ID"             --decision accepted             --summary "remote durable handoff validated"
+          git update-ref -d "refs/usegit/work/$WORK_ID"
+          node src/cli.mjs status > /tmp/work-status.json
+          node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('/tmp/work-status.json','utf8')); if (!x.finished.some(w => w.id === process.env.WORK_ID)) process.exit(1)"
+      - name: Cleanup remote test ref
+        if: always()
+        run: |
+          git push origin ":refs/usegit/work/$WORK_ID" || true
+          git update-ref -d "refs/usegit/work/$WORK_ID" || true
+
   blind-replay-fixtures:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/experiment/causal-memory-v0' }}
     needs: validate
