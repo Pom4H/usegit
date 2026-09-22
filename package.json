@@ -30,7 +30,8 @@
     "view": "node src/cli.mjs view",
     "test:protocol": "node --test test/evidence-integrity.test.mjs test/protocol-race.e2e.mjs test/doctor-chaos.test.mjs",
     "agents": "node src/cli.mjs agents",
-    "agents:benchmark": "node src/agent-context-benchmark.mjs"
+    "agents:benchmark": "node src/agent-context-benchmark.mjs",
+    "agents:challenge": "node src/agent-context-challenge-cli.mjs"
   },
   "engines": {
     "node": ">=22"

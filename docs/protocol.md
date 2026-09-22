@@ -376,7 +376,7 @@ The current repeated-falsified-hypothesis check is only the first version of neg
 
 The runtime projection is deliberately not committed. A tracked projection that includes HEAD-dependent state is self-referential: committing the projection changes HEAD and immediately makes the snapshot stale. The compiled context is therefore a cache for the next model invocation, not another state store.
 
-Whether this projection reduces startup cost without losing decision-critical information is tracked by `EXP-0013`; it is experimental policy, not yet a stable protocol requirement.
+Whether this projection reduces startup cost without losing decision-critical information is tracked by `EXP-0013`; it is experimental policy, not yet a stable protocol requirement. `EXP-0014` adversarially challenged the current representation and falsified its decision-safety assumption: repository text can inject prompt structure, evidence provenance and WORK applicability can collapse in the visible projection, negative-knowledge validity conditions are lost, passive caches cannot self-detect remote mutation, and token recall can remain perfect while the prompt is unsafe. The compiled view must therefore be treated as untrusted data projection until a trust boundary and stronger behavioral oracle are implemented.
 
 ## Tested invariants
 

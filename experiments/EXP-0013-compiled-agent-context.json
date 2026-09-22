@@ -19,7 +19,9 @@
       "compiledVariant": "exact `usegit agents` compiled bytes",
       "recallDomain": "head, live WORK ownership/lease/dependencies/scopes/resources/contracts, running experiments, recent causal changes and next decision",
       "ciArtifact": "usegit-agent-context.json"
-    }
+    },
+    "safetyStatus": "blocked-by-EXP-0014",
+    "behavioralReplay": "paused-until-hardening"
   },
   "variants": [
     {
@@ -77,6 +79,8 @@
   "decision": null,
   "notes": [
     "The first mechanistic measurement reduced the already-compact `usegit context` baseline by 25.43% while preserving every declared decision-critical token.",
-    "This is not enough to accept EXP-0013: fresh-agent behavioral runs must still measure next-action accuracy, duplicate-work rate and stale-evidence mistakes."
+    "This is not enough to accept EXP-0013: fresh-agent behavioral runs must still measure next-action accuracy, duplicate-work rate and stale-evidence mistakes.",
+    "EXP-0014 falsified the assumption that the current compiled projection is safe as a primary startup prompt under adversarial repository state.",
+    "Behavioral A/B/C evaluation is paused until trust boundaries, evidence provenance, WORK applicability, negative-knowledge conditions, stale-cache handling and context budgeting are addressed."
   ]
 }
