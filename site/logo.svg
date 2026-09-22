@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">usegit</title>
+  <g fill="none" stroke-linecap="round" stroke-width="14">
+    <path d="M64 64V27" stroke="#2F8CFF"/>
+    <path d="M64 64L32 91" stroke="#7C4DFF"/>
+    <path d="M64 64L96 91" stroke="#15D1BE"/>
+  </g>
+  <circle cx="64" cy="23" r="17" fill="#2F8CFF"/>
+  <circle cx="27" cy="96" r="17" fill="#7C4DFF"/>
+  <circle cx="101" cy="96" r="17" fill="#15D1BE"/>
+  <circle cx="64" cy="64" r="19" fill="#050608" stroke="#313846" stroke-width="2"/>
+</svg>
