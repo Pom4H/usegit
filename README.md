@@ -11,19 +11,20 @@ npx --yes github:Pom4H/usegit#main init
 usegit status
 ```
 
-Take work:
+Take ownership now:
 
 ```bash
-usegit start --goal "fix renderer race" --hypothesis "the race disappears"
+usegit start --goal "fix renderer race"
 ```
 
-Queue compatible worker tasks with a batch, then:
+Queue work for any agent:
 
 ```bash
+usegit enqueue --goal "add cache invalidation" --scope "src/cache/**" --resource-write "cache.protocol"
 usegit claim-next
 ```
 
-Before waiting:
+Persist an external wait:
 
 ```bash
 usegit await WORK-1234 --event ci:test --on-success "finish" --on-failure "inspect failure"
@@ -37,7 +38,7 @@ usegit resume WORK-1234 --result success --evidence "CI passed" --evidence-kind 
 
 Acceptance requires observed or attested evidence for the exact current Git tree.
 
-State lives only in `refs/usegit/work/*`. No database, prompt cache, experiment framework or dashboard.
+State lives only in `refs/usegit/work/*`. No database, prompt cache, experiment framework, commit-trailer protocol or dashboard.
 
 See [docs/protocol.md](docs/protocol.md).
 
