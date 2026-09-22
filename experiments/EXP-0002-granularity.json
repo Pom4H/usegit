@@ -25,9 +25,23 @@
     "commits_per_experiment",
     "repeated_work_rate"
   ],
+  "controlledBenchmark": {
+    "id": "granularity-v1",
+    "sourceChangeId": "UG-0008",
+    "baseCommit": "5711fd9c494ce46bb261e808374a747c36fa7347",
+    "targetTree": "8aaf353048cfa4f516c288459a3cd80ffed1deea",
+    "branches": {
+      "coarse": "bench/granularity/coarse-v1",
+      "fine": "bench/granularity/fine-v1",
+      "dynamic": "bench/granularity/dynamic-v1"
+    },
+    "requiredReplayRunsPerVariant": 3,
+    "results": []
+  },
   "notes": [
     "File and line counts are observations, not boundary rules.",
-    "Do not select a winner before every variant reaches the minimum sample count.",
+    "The initial repository samples are observational and confounded by task complexity; they cannot select a winner.",
+    "A winner requires paired replay on histories that end at the same tree.",
     "The selection policy itself is part of the experiment and may be falsified."
   ],
   "decision": null

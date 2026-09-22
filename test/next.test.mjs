@@ -4,7 +4,8 @@ import { nextExperiment } from '../src/next.mjs';
 
 const base = {
   validationErrors: [],
-  unresolvedExperiments: ['EXP-0001'],
+  unresolvedExperiments: ['EXP-0001', 'EXP-0002'],
+  granularityReplay: null,
   strategies: {
     coarse: { samples: 1 },
     fine: { samples: 0 },
@@ -40,4 +41,25 @@ test('does not compare policies before minimum evidence exists', () => {
     },
   });
   assert.equal(next.strategy, 'fine');
+});
+
+test('requires paired replay after observational samples are sufficient', () => {
+  const next = nextExperiment({
+    ...base,
+    strategies: {
+      coarse: { samples: 3 },
+      fine: { samples: 3 },
+      dynamic: { samples: 4 },
+    },
+    granularityReplay: {
+      benchmarkId: 'granularity-v1',
+      sampleReady: true,
+      requiredRunsPerVariant: 3,
+      completedRuns: { coarse: 0, fine: 0, dynamic: 0 },
+      complete: false,
+    },
+  });
+
+  assert.equal(next.kind, 'run-controlled-granularity-replay');
+  assert.deepEqual(next.strategies, ['coarse', 'fine', 'dynamic']);
 });

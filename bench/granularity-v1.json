@@ -1,0 +1,47 @@
+{
+  "id": "granularity-v1",
+  "purpose": "Compare commit-boundary policies while holding the final code state constant.",
+  "sourceChange": {
+    "changeId": "UG-0008",
+    "experiment": "EXP-0003",
+    "baseCommit": "5711fd9c494ce46bb261e808374a747c36fa7347",
+    "targetTree": "8aaf353048cfa4f516c288459a3cd80ffed1deea"
+  },
+  "histories": {
+    "coarse": {
+      "branch": "bench/granularity/coarse-v1",
+      "commits": 1
+    },
+    "fine": {
+      "branch": "bench/granularity/fine-v1",
+      "commits": 5
+    },
+    "dynamic": {
+      "branch": "bench/granularity/dynamic-v1",
+      "commits": 3
+    }
+  },
+  "tasks": [
+    {
+      "id": "reconstruct",
+      "prompt": "Explain why context compression exists, what hypothesis it tests, and what evidence would accept or reject it.",
+      "metrics": ["correctness", "commits_inspected", "context_bytes_read", "tool_calls"]
+    },
+    {
+      "id": "surgical-revert",
+      "prompt": "Remove only the CLI exposure of compact causal history while preserving the compressor, report metrics, experiment record and tests.",
+      "metrics": ["correctness", "unwanted_diff_paths", "commits_inspected", "tool_calls"]
+    },
+    {
+      "id": "continue",
+      "prompt": "Continue the context-compression work by raising the causal history limit from 12 to 20 without losing critical field recall.",
+      "metrics": ["correctness", "unwanted_diff_paths", "commits_inspected", "context_bytes_read", "tool_calls"]
+    }
+  ],
+  "invariants": [
+    "All three benchmark branch heads must have the same tree SHA.",
+    "The agent must not be told which strategy it is evaluating.",
+    "Replay results must record model/runtime identity and tool-call transcript metadata.",
+    "No aggregate winner is allowed until every variant has the required replay count."
+  ]
+}

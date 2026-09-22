@@ -7,9 +7,6 @@ export function nextExperiment(report) {
     };
   }
 
-  // Array.sort is stable in modern JS. On equal sample counts we preserve
-  // the experiment's declared strategy order instead of introducing an
-  // unrelated lexical preference such as dynamic < fine.
   const target = Object.entries(report.strategies)
     .sort((a, b) => a[1].samples - b[1].samples)[0];
 
@@ -19,6 +16,21 @@ export function nextExperiment(report) {
       strategy: target[0],
       hypothesis: `A ${target[0]} commit boundary improves causal reconstruction enough to justify its coordination cost.`,
       reason: `Only ${target[1].samples} sample(s); collect at least 3 before comparing policies.`,
+    };
+  }
+
+  const replay = report.granularityReplay;
+  if (replay?.sampleReady && !replay.complete) {
+    const needs = Object.entries(replay.completedRuns)
+      .filter(([, count]) => count < replay.requiredRunsPerVariant)
+      .map(([strategy]) => strategy);
+
+    return {
+      kind: 'run-controlled-granularity-replay',
+      benchmark: replay.benchmarkId,
+      strategies: needs,
+      hypothesis: 'Paired replay on identical final trees can separate history quality from task complexity.',
+      reason: 'Observational granularity samples are confounded; controlled replay is required before selecting a policy.',
     };
   }
 

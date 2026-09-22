@@ -22,14 +22,37 @@ function loadExperiments(dir = 'experiments') {
 
 export function latestRevisionPerChange(samples) {
   const unique = new Map();
-  // history() is newest first, so the first SHA for a Change ID is its
-  // current revision. Older revisions remain history/evidence but do not
-  // become additional granularity samples.
   for (const sample of samples) {
     const id = sample.metadata?.changeId;
     if (id && !unique.has(id)) unique.set(id, sample);
   }
   return [...unique.values()];
+}
+
+function replayState(experiments, strategies) {
+  const exp = experiments.find((x) => x.id === 'EXP-0002');
+  const benchmark = exp?.controlledBenchmark;
+  if (!benchmark) return null;
+
+  const minimum = exp.minimumSamplesPerVariant ?? 0;
+  const sampleReady = Object.values(strategies).every((x) => x.samples >= minimum);
+  const required = benchmark.requiredReplayRunsPerVariant ?? 0;
+  const results = Array.isArray(benchmark.results) ? benchmark.results : [];
+  const completed = Object.fromEntries(['coarse', 'fine', 'dynamic'].map((strategy) => [
+    strategy,
+    results.filter((x) => x.strategy === strategy).length,
+  ]));
+  const complete = sampleReady && Object.values(completed).every((count) => count >= required);
+
+  return {
+    benchmarkId: benchmark.id,
+    sampleReady,
+    requiredRunsPerVariant: required,
+    completedRuns: completed,
+    complete,
+    targetTree: benchmark.targetTree,
+    branches: benchmark.branches,
+  };
 }
 
 export function buildReport() {
@@ -80,6 +103,7 @@ export function buildReport() {
       contextToRawByteRatio: Number(ratio.toFixed(4)),
     },
     strategies,
+    granularityReplay: replayState(experiments, strategies),
     validationErrors: validationErrors(commits),
   };
 }
