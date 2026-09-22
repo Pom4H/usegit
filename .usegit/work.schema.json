@@ -10,6 +10,9 @@
     "goal": { "type": "string", "minLength": 1 },
     "hypothesis": { "type": "string", "minLength": 1 },
     "experiment": { "type": ["string", "null"] },
+    "batchId": { "type": ["string", "null"] },
+    "priority": { "type": "number" },
+    "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "scopes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "contract": {
       "type": "object",

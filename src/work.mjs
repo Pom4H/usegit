@@ -1,5 +1,6 @@
 import os from 'node:os';
 import { randomUUID } from 'node:crypto';
+import { normalizeBatchPlan } from './batch.mjs';
 import { git, tryGit } from './git.mjs';
 import {
   awaitWorkState,
@@ -114,6 +115,20 @@ function generatedId() {
   return `WORK-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
+function stableSpec(state) {
+  return JSON.stringify({
+    goal: state.goal,
+    hypothesis: state.hypothesis,
+    experiment: state.experiment ?? null,
+    batchId: state.batchId ?? null,
+    priority: state.priority ?? 0,
+    dependsOn: state.dependsOn ?? [],
+    scopes: state.scopes ?? [],
+    contract: state.contract ?? {},
+    routing: state.route?.signals ?? {},
+  });
+}
+
 export function startWork({
   id = generatedId(),
   goal,
@@ -122,6 +137,9 @@ export function startWork({
   scopes = [],
   contract = {},
   routing = {},
+  batchId = null,
+  priority = 0,
+  dependsOn = [],
   owner = defaultOwner(),
   leaseMinutes = 30,
   remote = 'origin',
@@ -137,12 +155,74 @@ export function startWork({
     scopes,
     contract,
     routing,
+    batchId,
+    priority,
+    dependsOn,
     base: git(['rev-parse', 'HEAD']),
     owner,
     leaseMs: Number(leaseMinutes) * 60_000,
   });
 
   return persist(state, null, remote);
+}
+
+export function createWorkBatch(plan, {
+  owner = defaultOwner(),
+  remote = 'origin',
+  leaseMinutes = 30,
+} = {}) {
+  const batch = normalizeBatchPlan(plan);
+  const existing = new Map(listWorkStates({ sync: true, remote }).map((state) => [state.id, state]));
+  const planIds = new Set(batch.work.map((item) => item.id));
+  const available = new Set([...existing.keys(), ...planIds]);
+
+  for (const item of batch.work) {
+    for (const dependency of item.dependsOn) {
+      if (!available.has(dependency)) {
+        throw new Error(`${item.id} depends on unknown work ${dependency}`);
+      }
+      if (dependency === item.id) throw new Error(`${item.id} cannot depend on itself`);
+    }
+  }
+
+  const created = [];
+  const skipped = [];
+
+  for (const item of batch.work) {
+    const prior = existing.get(item.id);
+    if (prior) {
+      const expected = createWorkState({
+        ...item,
+        batchId: batch.id,
+        base: prior.base,
+        owner: prior.createdBy ?? owner,
+        now: Date.parse(prior.createdAt),
+        leaseMs: Number(leaseMinutes) * 60_000,
+      });
+      if (stableSpec(prior) !== stableSpec(expected)) {
+        throw new Error(`${item.id} already exists with a different specification`);
+      }
+      skipped.push(item.id);
+      continue;
+    }
+
+    const state = startWork({
+      ...item,
+      batchId: batch.id,
+      owner,
+      leaseMinutes,
+      remote,
+    });
+    created.push(state.id);
+    existing.set(state.id, state);
+  }
+
+  return {
+    batchId: batch.id,
+    created,
+    skipped,
+    queue: workStatus({ sync: true, remote }),
+  };
 }
 
 export function awaitWork(id, {
@@ -165,6 +245,60 @@ export function escalateWork(id, {
   syncWorkRefs(remote);
   const { state, commit } = current(id);
   return persist(escalateWorkState(state, { owner, reason }), commit, remote);
+}
+
+export function claimWork(id, {
+  owner = defaultOwner(),
+  leaseMinutes = 30,
+  remote = 'origin',
+} = {}) {
+  const overview = workStatus({ sync: true, remote });
+  const ready = overview.workerReady.find((row) => row.id === id);
+  if (!ready) {
+    const blocked = overview.queueBlocked.find((row) => row.id === id);
+    if (blocked) throw new Error(`${id} is queue-blocked: ${JSON.stringify(blocked.blockedBy)}`);
+    throw new Error(`${id} is not worker-ready`);
+  }
+
+  const { state, commit } = current(id);
+  return persist(resumeWorkState(state, {
+    owner,
+    leaseMs: Number(leaseMinutes) * 60_000,
+  }), commit, remote);
+}
+
+export function claimNextWork({
+  owner = defaultOwner(),
+  leaseMinutes = 30,
+  remote = 'origin',
+  retries = 8,
+} = {}) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    const overview = workStatus({ sync: true, remote });
+    const candidate = overview.workerReady[0];
+
+    if (!candidate) {
+      return {
+        claimed: null,
+        workerReady: 0,
+        queueBlocked: overview.queueBlocked.map((row) => ({
+          id: row.id,
+          blockedBy: row.blockedBy,
+        })),
+      };
+    }
+
+    try {
+      const claimed = claimWork(candidate.id, { owner, leaseMinutes, remote });
+      return { claimed, attempt: attempt + 1 };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new Error(`could not claim worker-ready work after ${retries} attempts: ${lastError?.message ?? 'unknown race'}`);
 }
 
 export function resumeWork(id, {

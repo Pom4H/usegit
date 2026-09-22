@@ -127,7 +127,7 @@ Because the contract is execution-ready, the WORK is persisted as `ready` **with
 
 ```bash
 usegit context
-usegit claim WORK-...
+usegit claim-next
 ```
 
 `context.work.workerReady` is the cheap execution queue. `context.work.controlQueue` contains ambiguous or escalated decisions for a deeper control thread.
@@ -139,6 +139,42 @@ usegit escalate WORK-... --reason "evidence contradicts the architecture assumpt
 ```
 
 That releases the worker lease and moves the WORK to deep control. `usegit route` can preview the routing decision before a WORK is created.
+
+## Batch planning and self-service workers
+
+The control thread can fan one decision out into many durable tasks with a JSON plan:
+
+```bash
+usegit batch .usegit/batch.json
+```
+
+A batch can contain up to 100 WORK items with priorities and dependencies. Re-running the same batch is idempotent when the specifications are unchanged, so a partially interrupted batch can be safely retried.
+
+The queue does not expose every `ready` task at once. It computes a deterministic scope-safe independent set:
+
+```text
+30 planned WORK
+       |
+       +-- dependencies not satisfied --> queueBlocked
+       +-- overlaps active/awaiting ----> queueBlocked
+       +-- overlaps higher-priority ready WORK -> queueBlocked
+       |
+       v
+  workerReady
+```
+
+This matters when many worker chats start at the same time: tasks simultaneously visible in `workerReady` do not overlap declared scopes.
+
+A disposable worker does not need a task ID:
+
+```bash
+usegit context
+usegit claim-next
+```
+
+`claim-next` takes the highest-priority dispatchable WORK. The Git ref update is compare-and-swap; if multiple workers race for the same first item, only one publishes the claim and the others retry against the updated queue.
+
+Dependencies unblock automatically after predecessor WORK reaches `accepted`. Awaiting, active, escalated and stale work continue to reserve their scopes, so waiting for CI does not accidentally let another worker modify the same causal surface.
 
 ## Pull requests are not work items
 

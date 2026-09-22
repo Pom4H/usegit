@@ -1,3 +1,4 @@
+import { buildWorkerQueue } from './queue.mjs';
 import { escalateRoute, recommendRoute } from './routing.mjs';
 import { normalizeScopes, workConflicts } from './scope.mjs';
 
@@ -14,6 +15,11 @@ function normalizeContract(contract = {}) {
   };
 }
 
+function normalizeDependsOn(dependsOn = []) {
+  if (!Array.isArray(dependsOn)) throw new Error('dependsOn must be an array');
+  return [...new Set(dependsOn.map(String))].sort();
+}
+
 export function createWorkState({
   id,
   goal,
@@ -22,6 +28,9 @@ export function createWorkState({
   scopes = [],
   contract = {},
   routing = {},
+  batchId = null,
+  priority = 0,
+  dependsOn = [],
   base,
   owner,
   now = Date.now(),
@@ -31,8 +40,13 @@ export function createWorkState({
     throw new Error('work requires id, goal, hypothesis, base and owner');
   }
 
+  const normalizedScopes = normalizeScopes(scopes);
   const normalizedContract = normalizeContract(contract);
   const route = recommendRoute(routing, normalizedContract);
+  if (route.lane === 'worker' && route.ready && !normalizedScopes.length) {
+    route.ready = false;
+    route.blockers = [...new Set([...(route.blockers ?? []), 'missing-scope'])];
+  }
   const dispatchToWorker = route.lane === 'worker' && route.ready;
 
   return {
@@ -41,7 +55,10 @@ export function createWorkState({
     goal,
     hypothesis,
     experiment,
-    scopes: normalizeScopes(scopes),
+    batchId,
+    priority: Number(priority) || 0,
+    dependsOn: normalizeDependsOn(dependsOn),
+    scopes: normalizedScopes,
     contract: normalizedContract,
     route,
     base,
@@ -215,9 +232,13 @@ export function compactWorkOverview(states, now = Date.now()) {
     status: effectiveWorkStatus(work, now),
     goal: work.goal,
     experiment: work.experiment,
+    batchId: work.batchId ?? null,
+    priority: work.priority ?? 0,
+    dependsOn: normalizeDependsOn(work.dependsOn ?? []),
     scopes: normalizeScopes(work.scopes ?? []),
     contract: normalizeContract(work.contract ?? {}),
     route: work.route ?? recommendRoute({}, work.contract ?? {}),
+    createdAt: work.createdAt,
     owner: work.lease?.owner ?? null,
     leaseExpiresAt: work.lease?.expiresAt ?? null,
     awaiting: work.awaiting?.event ?? null,
@@ -226,10 +247,12 @@ export function compactWorkOverview(states, now = Date.now()) {
     updatedAt: work.updatedAt,
   }));
 
+  const dispatch = buildWorkerQueue(rows);
   const conflicts = workConflicts(rows);
 
   return {
-    workerReady: rows.filter((x) => x.status === 'ready' && x.route?.lane === 'worker' && x.route?.ready),
+    workerReady: dispatch.workerReady,
+    queueBlocked: dispatch.queueBlocked,
     controlQueue: rows.filter((x) =>
       x.status === 'escalated' ||
       (x.status === 'active' && (x.route?.lane === 'control' || !x.route?.ready))),

@@ -8,7 +8,17 @@ import { compactCausalHistory } from './context.mjs';
 import { decideIntegration } from './integration.mjs';
 import { initializeRepository } from './init.mjs';
 import { recommendRoute } from './routing.mjs';
-import { awaitWork, escalateWork, finishWork, resumeWork, startWork, workStatus } from './work.mjs';
+import {
+  awaitWork,
+  claimNextWork,
+  claimWork,
+  createWorkBatch,
+  escalateWork,
+  finishWork,
+  resumeWork,
+  startWork,
+  workStatus,
+} from './work.mjs';
 import { configureRepository } from './setup.mjs';
 
 const command = process.argv[2] ?? 'context';
@@ -70,6 +80,9 @@ function workCommand(action, values) {
       scopes: args.scope ? String(args.scope).split(',').map((x) => x.trim()).filter(Boolean) : [],
       contract: contractFromArgs(args),
       routing: routingFromArgs(args),
+      batchId: args.batch ?? null,
+      priority: args.priority ?? 0,
+      dependsOn: args.dependsOn ? String(args.dependsOn).split(',').map((x) => x.trim()).filter(Boolean) : [],
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
@@ -98,10 +111,18 @@ function workCommand(action, values) {
   }
   if (action === 'claim') {
     if (!id) throw new Error('claim requires WORK id');
-    return resumeWork(id, {
+    return claimWork(id, {
       owner: args.owner,
       leaseMinutes: args.leaseMinutes ?? 30,
       remote: args.remote ?? 'origin',
+    });
+  }
+  if (action === 'claim-next') {
+    return claimNextWork({
+      owner: args.owner,
+      leaseMinutes: args.leaseMinutes ?? 30,
+      remote: args.remote ?? 'origin',
+      retries: Number(args.retries ?? 8),
     });
   }
   if (action === 'resume') {
@@ -139,6 +160,15 @@ try {
       causalHistory: compactCausalHistory(commits),
       next: nextExperiment(buildReport()),
     });
+  } else if (command === 'batch') {
+    const args = parseArgs(process.argv.slice(3));
+    const file = args._[0] ?? '.usegit/batch.json';
+    const plan = JSON.parse(fs.readFileSync(file, 'utf8'));
+    print(createWorkBatch(plan, {
+      owner: args.owner,
+      remote: args.remote ?? 'origin',
+      leaseMinutes: args.leaseMinutes ?? 30,
+    }));
   } else if (command === 'route') {
     const args = parseArgs(process.argv.slice(3));
     print(recommendRoute(routingFromArgs(args), contractFromArgs(args)));
@@ -166,7 +196,7 @@ try {
     print(decideIntegration(plan));
   } else if (command === 'work') {
     print(workCommand(process.argv[3] ?? 'status', process.argv.slice(4)));
-  } else if (['start', 'status', 'await', 'escalate', 'claim', 'resume', 'finish'].includes(command)) {
+  } else if (['start', 'status', 'await', 'escalate', 'claim', 'claim-next', 'resume', 'finish'].includes(command)) {
     print(workCommand(command, process.argv.slice(3)));
   } else {
     console.error(`Unknown command: ${command}`);

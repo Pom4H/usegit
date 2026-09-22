@@ -60,9 +60,9 @@ function agentBlock(toolRef) {
     '',
     'This repository uses usegit as design-time memory and durable execution state. A model invocation owns only the next decision; Git owns the work state.',
     '',
-    '1. Before editing, run `' + tool + ' context`. Inspect `work.workerReady`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts`; do not duplicate existing work.',
-    '2. Control agents create WORK with `--scope`, `--success`, and `--evidence-plan`. Low-uncertainty work with an objective oracle is routed to `work.workerReady`; ambiguous work stays in control.',
-    '3. Cheap workers only claim `work.workerReady` with `' + tool + ' claim WORK-*`. Do not take control-queue work or improvise architecture.',
+    '1. Before editing, run `' + tool + ' context`. Inspect `work.workerReady`, `work.queueBlocked`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts`; do not duplicate existing work.',
+    '2. Control agents preferably create batches of WORK with scopes, success criteria, evidence plans, priorities and dependencies. Low-uncertainty work with an objective oracle is routed to `work.workerReady`; ambiguous work stays in control.',
+    '3. Cheap workers only claim `work.workerReady`; prefer `' + tool + ' claim-next` so workers self-schedule. Do not take control-queue work or improvise architecture.',
     '4. If a worker finds conflicting evidence, architecture ambiguity, or repeated unexplained failure, run `' + tool + ' escalate WORK-* --reason ...` and return the decision to control.',
     '5. Never steal an unexpired lease. Before waiting on CI or another external event, persist the continuation with `' + tool + ' await WORK-* --event ...`. A later fresh invocation resumes with `' + tool + ' resume WORK-* --result ...`.',
     '6. Work under an experiment with one falsifiable hypothesis. Create an experiment record when no existing experiment covers the change.',
@@ -118,6 +118,34 @@ const INTEGRATION_EXAMPLE = JSON.stringify({
     release: false,
     externalContributor: false,
   },
+}, null, 2) + '\n';
+
+const BATCH_EXAMPLE = JSON.stringify({
+  id: 'BATCH-example',
+  experiment: 'EXP-0001',
+  defaults: {
+    uncertainty: 'low',
+    oracle: 'objective',
+    evidencePlan: 'deterministic CI evidence',
+  },
+  work: [
+    {
+      id: 'WORK-example-a',
+      goal: 'improve component A',
+      hypothesis: 'change A improves its objective metric',
+      scopes: ['src/a/**', 'test/a/**'],
+      success: 'A metric improves without regression',
+      priority: 20,
+    },
+    {
+      id: 'WORK-example-b',
+      goal: 'improve component B',
+      hypothesis: 'change B improves its objective metric',
+      scopes: ['src/b/**', 'test/b/**'],
+      success: 'B metric improves without regression',
+      priority: 10,
+    },
+  ],
 }, null, 2) + '\n';
 
 const EXPERIMENTS_README = [
@@ -184,6 +212,7 @@ export function initializeRepository(cwd = process.cwd(), options = {}) {
       path.join(root, '.usegit', 'integration.example.json'),
       INTEGRATION_EXAMPLE,
     ),
+    batchExample: writeIfMissing(path.join(root, '.usegit', 'batch.example.json'), BATCH_EXAMPLE),
     experimentsReadme: writeIfMissing(path.join(root, 'experiments', 'README.md'), EXPERIMENTS_README),
   };
 

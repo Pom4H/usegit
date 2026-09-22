@@ -81,6 +81,36 @@ Routing is based on properties of the work, not a hard-coded model name. The cur
 
 Automatic worker routing is intentionally conservative. Missing success/evidence contracts, medium or high uncertainty, partial/no oracle, architecture decisions, conflicting evidence, or three failed attempts keep the work in control. An explicit worker override remains visible as not-ready when blockers exist.
 
+## Batch scheduling
+
+Control may materialize many hypotheses at once as a batch. A batch is only a creation convenience; each WORK remains independently durable and falsifiable.
+
+The worker queue is derived from current WORK state rather than stored as another database. Candidates are sorted by priority and then filtered into a deterministic independent set. A ready candidate is blocked when:
+
+- a dependency is missing, failed or not yet accepted;
+- an active, awaiting, escalated or stale WORK reserves an overlapping scope;
+- a higher-priority ready candidate in the same dispatch set overlaps its scope;
+- no scope was declared.
+
+Because simultaneously dispatchable candidates are scope-independent, multiple stateless workers may safely call `claim-next`. They may race for the same highest-priority WORK, but ref compare-and-swap makes that a recoverable scheduling race rather than duplicate ownership.
+
+```text
+control
+  |
+  +-> batch plan
+         |
+         v
+    durable ready WORK
+         |
+    queue derivation
+      /      \
+blocked     independent set
+                |
+        worker claim-next
+                |
+        CAS refs/usegit/work/*
+```
+
 ## Negative knowledge
 
 Rejected and falsified hypotheses are first-class results. Deleting failed attempts destroys information and causes future agents to revisit the same dead ends.

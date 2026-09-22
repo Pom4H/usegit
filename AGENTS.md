@@ -3,9 +3,9 @@
 This repository is a self-hosting experiment. The development process is part of the product data.
 
 1. Run `npm run context` before editing. Do not reconstruct history from the current tree alone.
-2. Inspect `work.workerReady`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts` before starting anything. Do not duplicate existing work.
-3. Control agents create `WORK-*` units before implementation. Declare intended paths with `--scope`, an explicit `--success` criterion and `--evidence-plan`, then inspect the routing decision.
-4. Cheap workers only claim tasks present in `work.workerReady`. Claim with `usegit claim WORK-*`; do not take control-queue work.
+2. Inspect `work.workerReady`, `work.queueBlocked`, `work.controlQueue`, `work.active`, `work.awaiting`, `work.stale` and `work.conflicts` before starting anything. Do not duplicate existing work.
+3. Control agents create `WORK-*` units before implementation, preferably as a batch. Declare scopes, explicit success criteria, evidence plans, priorities and dependencies; then inspect routing and queue blocking.
+4. Cheap workers only claim tasks present in `work.workerReady`. Prefer `usegit claim-next` so workers self-schedule by priority; do not take control-queue work.
 5. An unexpired lease means another agent owns the next decision for that work. Never steal it. An expired lease is surfaced as `stale` and may be resumed.
 6. Cheap workers must not make architecture decisions, resolve conflicting evidence, or continue after repeated unexplained failures. Use `usegit escalate WORK-* --reason ...` and release the decision back to control.
 7. Control agents own hypothesis selection and escalations; worker agents own only the bounded next action encoded in an execution-ready WORK.
